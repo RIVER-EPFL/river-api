@@ -1,5 +1,15 @@
 # RIVER API
-The backend API for the RIVER lab
+The backend API for the RIVER lab.
+
+
+## Application relationships
+
+This API supports the following applications:
+
+- [astroriver-bff](https://github.com/RIVER-EPFL/astroriver-bff)
+- [astroriver-ui](https://github.com/RIVER-EPFL/astroriver-ui)
+
+## Getting started
 
 ### Seed the database with some data
 
