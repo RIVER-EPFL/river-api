@@ -1,11 +1,29 @@
-from fastapi import FastAPI, status
+from fastapi import FastAPI, status, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import config
 from app.areas.views import router as areas_router
 from app.sensors.views import router as sensors_router
+from app.astrocast.classes import astrocast_api
 from pydantic import BaseModel
+from contextlib import asynccontextmanager
+import asyncio
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(
+    app: FastAPI,
+):
+    print("Starting up RIVER-API...")
+
+    # Start polling the Astrocast API for messages
+    asyncio.create_task(astrocast_api.start_collecting_messages())
+
+    yield
+
+
+app = FastAPI(
+    lifespan=lifespan,
+)
 
 origins = ["*"]
 
@@ -16,6 +34,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# app.add_event_handler("startup", on_startup)
 
 
 class HealthCheck(BaseModel):

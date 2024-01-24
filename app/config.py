@@ -11,10 +11,17 @@ class Config(BaseSettings):
     DB_USER: str
     DB_PASSWORD: str
 
-    DB_NAME: str  # postgres
-    DB_PREFIX: str  # "postgresql+asyncpg"
+    DB_NAME: str = "postgres"
+    DB_PREFIX: str = "postgresql+asyncpg"
 
     DB_URL: str | None = None
+
+    # Astrocast API settings
+    ASTROCAST_API_URL: str
+    ASTROCAST_API_KEY: str
+    ASTROCAST_POLLING_INTERVAL_SECONDS: int = 60
+    ASTROCAST_RETRY_MIN_WAIT_SECONDS: int = 1
+    ASTROCAST_RETRY_MAX_WAIT_SECONDS: int = 5
 
     @root_validator(pre=True)
     def form_db_url(cls, values: dict) -> dict:
