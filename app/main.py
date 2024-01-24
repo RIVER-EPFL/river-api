@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import config
 from app.areas.views import router as areas_router
 from app.sensors.views import router as sensors_router
+from app.astrocast.views import router as astrocast_router
 from app.astrocast.classes import astrocast_api
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
@@ -70,4 +71,9 @@ app.include_router(
     sensors_router,
     prefix=f"{config.API_V1_PREFIX}/sensors",
     tags=["sensors"],
+)
+app.include_router(
+    astrocast_router,
+    prefix=f"{config.API_V1_PREFIX}/astrocast",
+    tags=["astrocast"],
 )
