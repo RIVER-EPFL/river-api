@@ -52,17 +52,19 @@ class AstrocastAPI:
         # Get the last retrieved message time that we saved locally
         if only_new_messages:
             last_db_message_time = await self.get_time_of_last_saved_message()
-            query_string = f'startReceivedDate={last_db_message_time.strftime("%Y-%m-%dT%H:%M:%S")}Z'
+            if last_db_message_time:
+                formed_api_url = (
+                    f"{self.api_url}/messages?startReceivedDate="
+                    f'{last_db_message_time.strftime("%Y-%m-%dT%H:%M:%S")}Z'
+                )
+            else:
+                formed_api_url = f"{self.api_url}/messages"
         else:
-            last_db_message_time = None
-
-        print(
-            f'Last message retrieved at: {last_db_message_time.strftime("%Y-%m-%dT%H:%M:%S")}Z'
-        )
+            formed_api_url = f"{self.api_url}/messages"
 
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                f"{self.api_url}/messages?{query_string}",
+                formed_api_url,
                 headers={"X-Api-Key": str(self.api_token)},
             ) as response:
                 if response.status == 200:
