@@ -1,7 +1,6 @@
 from fastapi import FastAPI, status, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import config
-from app.areas.views import router as areas_router
 from app.sensors.views import router as sensors_router
 from app.astrocast.views import router as astrocast_router
 from app.astrocast.classes import astrocast_api
@@ -17,6 +16,7 @@ async def lifespan(
     print("Starting up RIVER-API...")
 
     # Start polling the Astrocast API for messages
+    asyncio.create_task(astrocast_api.update_device_types())
     asyncio.create_task(astrocast_api.start_collecting_messages())
 
     yield
@@ -62,11 +62,6 @@ def get_health() -> HealthCheck:
     return HealthCheck(status="OK")
 
 
-app.include_router(
-    areas_router,
-    prefix=f"{config.API_V1_PREFIX}/areas",
-    tags=["areas"],
-)
 app.include_router(
     sensors_router,
     prefix=f"{config.API_V1_PREFIX}/sensors",

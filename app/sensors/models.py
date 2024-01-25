@@ -7,17 +7,13 @@ import shapely
 from typing import TYPE_CHECKING
 import datetime
 
-if TYPE_CHECKING:
-    from app.areas.models import Area
-
 
 class SensorBase(SQLModel):
     name: str = Field(default=None, index=True)
     description: str | None = Field(default=None)
     comment: str | None = Field(default=None)
-    # elevation: float | None = Field(default=None)
     time_added_utc: datetime.datetime = Field(
-        default=None,
+        default_factory=datetime.datetime.utcnow,
         nullable=True,
         index=True,
     )
@@ -36,17 +32,8 @@ class Sensor(SensorBase, table=True):
         index=True,
         nullable=False,
     )
-    time_ingested_at_utc: datetime.datetime = Field(
-        default_factory=datetime.datetime.now,
-        nullable=False,
-        index=True,
-    )
     geom: Any = Field(sa_column=Column(Geometry("POINT", srid=4326)))
 
-    area_id: UUID = Field(default=None, foreign_key="area.id")
-    area: "Area" = Relationship(
-        back_populates="sensors", sa_relationship_kwargs={"lazy": "selectin"}
-    )
     data: list["SensorData"] = Relationship(
         back_populates="sensor",
         sa_relationship_kwargs={"lazy": "selectin"},
@@ -123,37 +110,19 @@ class SensorDataRead(SensorDataBase):
 class SensorRead(SensorBase):
     id: UUID
     geom: Any
-    # area_id: UUID
-    latitude: Any
-    longitude: Any
     battery_voltage: float | None = Field(default=None)
     healthy: bool | None = Field(default=None)
     temperature_1: float | None = Field(default=None)
     temperature_2: float | None = Field(default=None)
     last_data_utc: datetime.datetime | None = Field(default=None)
 
-    @root_validator
-    def convert_wkb_to_lat_lon(cls, values: dict) -> dict:
-        """Form the geometry from the latitude and longitude"""
-        if isinstance(values["geom"], WKBElement):
-            if values["geom"] is not None:
-                shapely_obj = shapely.wkb.loads(str(values["geom"]))
-                if shapely_obj is not None:
-                    mapping = shapely.geometry.mapping(shapely_obj)
 
-                    values["latitude"] = mapping["coordinates"][0]
-                    values["longitude"] = mapping["coordinates"][1]
-                    values["geom"] = mapping
-        elif isinstance(values["geom"], dict):
-            if values["geom"] is not None:
-                values["latitude"] = values["geom"]["coordinates"][0]
-                values["longitude"] = values["geom"]["coordinates"][1]
-                values["geom"] = values["geom"]
-        else:
-            values["latitude"] = None
-            values["longitude"] = None
+class SensorCreate(SensorBase):
+    pass
 
-        return values
+
+class SensorUpdate(SensorCreate):
+    instrumentdata: str | None = None
 
 
 class SensorDataSummary(SQLModel):
@@ -169,32 +138,3 @@ class SensorReadWithDataSummary(SensorRead):
 class SensorReadWithDataSummaryAndPlot(SensorRead):
     data: SensorDataSummary | None
     temperature_plot: list[SensorDataRead] | None = None
-
-
-class SensorCreate(SensorBase):
-    area_id: UUID
-    latitude: float
-    longitude: float
-
-    geom: Any | None = None
-
-    @root_validator(pre=True)
-    def convert_lat_lon_to_wkt(cls, values: dict) -> dict:
-        """Form the geometry from the latitude and longitude"""
-
-        if "latitude" in values and "longitude" in values:
-            values[
-                "geom"
-            ] = f"POINT({values['latitude']} {values['longitude']})"
-
-        return values
-
-
-class SensorUpdate(SensorCreate):
-    instrumentdata: str | None = None
-
-
-class SensorCreateFromGPX(SQLModel):
-    # Model to accept the data from the GPSX file. Data stored in Base64 of gpx
-    area_id: UUID
-    gpsx_files: list[Any] | None = None

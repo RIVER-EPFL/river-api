@@ -59,3 +59,64 @@ class AstrocastMessageRead(AstrocastMessageBase):
             values["decoded_data"] = decoded_data
 
         return values
+
+
+class AstrocastDeviceSummary(SQLModel):
+    id: UUID
+    deviceGuid: UUID
+    customerGuid: UUID | None
+    deviceTypeId: int | None
+    summaryDate: datetime.date | None
+    messagesCount: int | None
+    messagesSize: int | None
+    commandsCount: int | None
+    commandsSize: int | None
+
+    @root_validator(pre=True)
+    def set_device_id_from_guid(cls, values: dict) -> dict:
+        """Set the device id from the deviceGuid
+
+        Necessary for react-admin as it always needs an ID field"""
+        if values.get("deviceGuid") is not None:
+            values = dict(values)
+            values["id"] = values["deviceGuid"]
+
+        return values
+
+
+class AstrocastDevice(SQLModel):
+    id: UUID
+    deviceGuid: UUID
+    name: str | None
+    description: str | None
+    deviceType: int | None
+    deviceTypeName: str | None
+    deviceState: int | None
+    disabledUntilDate: datetime.datetime | None
+    deviceGroupGuid: UUID | None
+    modelNumber: str | None
+    serialNumber: str | None
+    firmwareVersion: str | None
+    componentModelNumber: str | None
+    componentSerialNumber: str | None
+    componentFirmwareVersion: str | None
+    protocolVersion: int | None
+    lastMessageDate: datetime.datetime | None
+    lastCommandDate: datetime.datetime | None
+    lastLocationDate: datetime.datetime | None
+    fixedGeolocation: bool | None
+    lastLatitude: float | None
+    lastLongitude: float | None
+    registrationEnabled: bool | None
+    billingExcluded: bool | None
+
+    @root_validator(pre=True)
+    def set_device_id_from_guid(cls, values: dict) -> dict:
+        """Set the device id from the deviceGuid
+
+        Necessary for react-admin as it always needs an ID field"""
+        if values.get("deviceGuid") is not None:
+            values = dict(values)
+            values["id"] = values["deviceGuid"]
+
+        return values

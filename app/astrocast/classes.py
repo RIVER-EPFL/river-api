@@ -1,7 +1,12 @@
 import aiohttp
 from app.config import config
 from fastapi import Depends
-from app.astrocast.models import AstrocaseMessageCreate, AstrocastMessage
+from app.astrocast.models import (
+    AstrocaseMessageCreate,
+    AstrocastMessage,
+    AstrocastDeviceSummary,
+    AstrocastDevice,
+)
 import tenacity
 import base64
 from sqlmodel import select
@@ -10,6 +15,8 @@ import datetime
 from app.db import async_session
 from sqlmodel.ext.asyncio.session import AsyncSession, AsyncEngine
 from sqlalchemy.orm import sessionmaker
+from uuid import UUID
+from functools import lru_cache
 
 
 class AstrocastAPI:
@@ -22,6 +29,7 @@ class AstrocastAPI:
         self.api_url: str = api_url
         self.poll_messages: bool = True
         self.last_polling_time: datetime.datetime | None = None
+        self.device_types = {}
 
     @tenacity.retry(
         wait=tenacity.wait_random(
@@ -81,6 +89,118 @@ class AstrocastAPI:
                     print("Error, something is wrong in the request.")
 
         return
+
+    async def get_device(
+        self,
+        device_id: UUID,
+    ):
+        """Get device from Astrocast"""
+
+        print(f"Getting device {device_id}...")
+
+        api_url = f"{self.api_url}/devices/{device_id}"
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                api_url,
+                headers={"X-Api-Key": str(self.api_token)},
+            ) as response:
+                if response.status == 200:
+                    message = await response.json()
+                    device_obj = AstrocastDevice(**message)
+                else:
+                    print("Error, something is wrong in the request.")
+
+        return device_obj
+
+    async def get_devices(self) -> list[AstrocastDevice]:
+        """Get devices from Astrocast"""
+
+        print("Getting devices ...")
+        print(self.device_types)
+        api_url = f"{self.api_url}/devices"
+        devices = []
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                api_url,
+                headers={"X-Api-Key": str(self.api_token)},
+            ) as response:
+                if response.status == 200:
+                    messages = await response.json()
+                    if len(messages) > 0:
+                        print(f"Got {len(messages)} devices.")
+
+                        # Compile message into objects
+                        for message in messages:
+                            device = AstrocastDevice(
+                                **message,
+                                deviceTypeName=self.device_types.get(
+                                    message["deviceType"]
+                                ),
+                            )
+                            devices.append(device)
+                    else:
+                        print("There is no message.")
+                else:
+                    print(
+                        "Error, something is wrong in the request: "
+                        f"{response.status}."
+                    )
+
+        return devices
+
+    async def update_device_types(self) -> dict[int, str]:
+        """Get device type from Astrocast"""
+
+        print("Getting device types ...")
+
+        api_url = f"{self.api_url}/enums/devicetypes"
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                api_url,
+                headers={"X-Api-Key": str(self.api_token)},
+            ) as response:
+                if response.status == 200:
+                    device_types = await response.json()
+                    for device_type in device_types:
+                        self.device_types[
+                            int(device_type["deviceTypeId"])
+                        ] = device_type["name"]
+
+                    print(f"Got {len(device_types)} device types")
+                else:
+                    print(
+                        "Error, something is wrong in the request: "
+                        f"{response.status}."
+                    )
+
+    async def get_device_summaries(self) -> list[AstrocastDeviceSummary]:
+        """Get device summaries from Astrocast"""
+
+        print("Getting device summary ...")
+
+        api_url = f"{self.api_url}/devices/summary"
+        device_summaries = []
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                api_url,
+                headers={"X-Api-Key": str(self.api_token)},
+            ) as response:
+                if response.status == 200:
+                    messages = await response.json()
+                    if len(messages) > 0:
+                        print(f"Got {len(messages)} devices.")
+
+                        # Compile message into objects
+                        for message in messages:
+                            device_summary = AstrocastDeviceSummary(**message)
+                            device_summaries.append(device_summary)
+                    else:
+                        print("There is no message.")
+                else:
+                    print("Error, something is wrong in the request.")
+
+        return device_summaries
 
     async def add_message_to_db(
         self,
@@ -169,6 +289,7 @@ class AstrocastAPI:
             return None
 
 
+@lru_cache
 def get_astrocast_api():
     return AstrocastAPI()
 
