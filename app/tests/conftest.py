@@ -26,7 +26,9 @@
 #     # client = TestClient(app)
 
 #     # yield client
+import os
 
+EXAMPLE_DATA_DIR = os.path.join(os.path.dirname(__file__), "example_data")
 
 # DATABASE_URL = "sqlite+aiosqlite:///"
 
