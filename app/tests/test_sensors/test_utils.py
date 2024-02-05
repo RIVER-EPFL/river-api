@@ -29,16 +29,18 @@ def test_conversion_from_bytes(
         for sensor, values in sensors.items():
             # print(sensor)
             print(f"{sensor}: {values}")
+
+            # Define the sensor object
             sensor_obj = SensorMeasurement(
                 int(values["Min"]),
                 int(values["Max"]),
             )
 
-            # Ignore values that are None
+            # Don't test in the case that the value is NaN (NoneType)
             if values["value"] is None:
                 continue
 
-            # Don't validate if the value is
+            # Test exceptions where the byte value is outside the range
             if (int(values["Bytes"]) < int(values["Min"])) or (
                 int(values["Bytes"]) > int(values["Max"])
                 or (values["value"] is None)
@@ -50,8 +52,12 @@ def test_conversion_from_bytes(
                         int(values["Bytes"])
                     )
                 continue
+
+            # Test the conversion
             conversion = sensor_obj.bytes_to_measurement(int(values["Bytes"]))
 
+            # Assert the conversion converts within a threshold of 1.0
             assert pytest.approx(conversion, 1.0) == float(
                 float(values["value"])
             )
+        print()
