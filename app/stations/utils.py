@@ -1,8 +1,7 @@
-# Constants
 from app.config import constants
 
 
-class SensorMeasurement:
+class StationMeasurement:
     def __init__(
         self,
         range_min: int,

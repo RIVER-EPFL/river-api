@@ -1,14 +1,11 @@
 from sqlmodel import SQLModel, Field, Column, Relationship, UniqueConstraint
-from geoalchemy2 import Geometry, WKBElement
+from geoalchemy2 import Geometry
 from uuid import uuid4, UUID
 from typing import Any
-from pydantic import validator, root_validator
-import shapely
-from typing import TYPE_CHECKING
 import datetime
 
 
-class SensorBase(SQLModel):
+class StationBase(SQLModel):
     name: str = Field(default=None, index=True)
     description: str | None = Field(default=None)
     comment: str | None = Field(default=None)
@@ -19,7 +16,7 @@ class SensorBase(SQLModel):
     )
 
 
-class Sensor(SensorBase, table=True):
+class Station(StationBase, table=True):
     __table_args__ = (UniqueConstraint("id"),)
     iterator: int = Field(
         default=None,
@@ -35,7 +32,7 @@ class Sensor(SensorBase, table=True):
     geom: Any = Field(sa_column=Column(Geometry("POINT", srid=4326)))
 
     data: list["SensorData"] = Relationship(
-        back_populates="sensor",
+        back_populates="station",
         sa_relationship_kwargs={"lazy": "selectin"},
     )
 
@@ -92,11 +89,11 @@ class SensorData(SensorDataBase, table=True):
         nullable=False,
     )
 
-    sensor_id: UUID = Field(
-        default=None, foreign_key="sensor.id", nullable=False, index=True
+    station_id: UUID = Field(
+        default=None, foreign_key="station.id", nullable=False, index=True
     )
 
-    sensor: Sensor = Relationship(
+    station: Station = Relationship(
         back_populates="data",
         sa_relationship_kwargs={"lazy": "selectin"},
     )
@@ -107,7 +104,7 @@ class SensorDataRead(SensorDataBase):
     sensor_id: UUID
 
 
-class SensorRead(SensorBase):
+class StationRead(StationBase):
     id: UUID
     geom: Any
     battery_voltage: float | None = Field(default=None)
@@ -117,11 +114,11 @@ class SensorRead(SensorBase):
     last_data_utc: datetime.datetime | None = Field(default=None)
 
 
-class SensorCreate(SensorBase):
+class StationCreate(StationBase):
     pass
 
 
-class SensorUpdate(SensorCreate):
+class StationUpdate(StationCreate):
     instrumentdata: str | None = None
 
 
@@ -131,10 +128,10 @@ class SensorDataSummary(SQLModel):
     qty_records: int | None = None
 
 
-class SensorReadWithDataSummary(SensorRead):
+class StationReadWithDataSummary(StationRead):
     data: SensorDataSummary
 
 
-class SensorReadWithDataSummaryAndPlot(SensorRead):
+class StationReadWithDataSummaryAndPlot(StationRead):
     data: SensorDataSummary | None
     temperature_plot: list[SensorDataRead] | None = None

@@ -8,7 +8,7 @@ from app.config import config as app_config
 from alembic import context
 from sqlmodel import SQLModel
 from geoalchemy2 import alembic_helpers
-from app.sensors.models import Sensor
+from app.stations.models import Station
 from app.astrocast.models import AstrocastMessage
 
 # this is the Alembic Config object, which provides
