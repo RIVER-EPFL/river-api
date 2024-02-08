@@ -54,7 +54,7 @@ async def get_astrocast_messages(
     count_query = select(func.count(AstrocastMessage.iterator))
     if len(filter):  # Have to filter twice for some reason? SQLModel state?
         for field, value in filter.items():
-            if field == "id" or field == "area_id":
+            if field == "id" or field == "deviceGuid":
                 count_query = count_query.filter(
                     getattr(AstrocastMessage, field) == value
                 )
@@ -82,7 +82,7 @@ async def get_astrocast_messages(
     # Filter by filter field params ie. {"name":"bar"}
     if len(filter):
         for field, value in filter.items():
-            if field == "id" or field == "area_id":
+            if field == "id" or field == "deviceGuid":
                 query = query.filter(getattr(AstrocastMessage, field) == value)
             else:
                 query = query.filter(
@@ -99,9 +99,9 @@ async def get_astrocast_messages(
     results = await session.execute(query)
     astrocast_messages = results.scalars().all()
 
-    response.headers[
-        "Content-Range"
-    ] = f"astrocast_messages {start}-{end}/{total_count}"
+    response.headers["Content-Range"] = (
+        f"astrocast_messages {start}-{end}/{total_count}"
+    )
 
     return astrocast_messages
 
@@ -157,8 +157,17 @@ async def get_astrocast_devices(
     # Filter by filter field params ie. {"name":"bar"}
     if len(filter):
         for field, value in filter.items():
-            if field == "id" or field == "area_id":
-                devices = list(filter(lambda x: x[field] == value, devices))
+            if field == "id":  # Special case for UUID
+
+                filtered_devices = []
+                if isinstance(value, list):
+                    for obj_id in value:  # Allow for multiple UUIDs in filter
+                        filtered_devices = [
+                            x for x in devices if str(x.id) == obj_id
+                        ]
+                    devices += filtered_devices
+                else:
+                    devices = [x for x in devices if str(x.id) == value]
             else:
                 devices = list(
                     filter(
@@ -173,8 +182,8 @@ async def get_astrocast_devices(
     else:
         start, end = [0, total_count]  # For content-range header
 
-    response.headers[
-        "Content-Range"
-    ] = f"astrocast_devices {start}-{end}/{total_count}"
+    response.headers["Content-Range"] = (
+        f"astrocast_devices {start}-{end}/{total_count}"
+    )
 
     return devices if len(devices) > 0 else []

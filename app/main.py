@@ -1,7 +1,7 @@
 from fastapi import FastAPI, status, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import config
-from app.sensors.views import router as sensors_router
+from app.stations.views import router as stations_router
 from app.astrocast.views import router as astrocast_router
 from app.astrocast.classes import astrocast_api
 from pydantic import BaseModel
@@ -63,9 +63,9 @@ def get_health() -> HealthCheck:
 
 
 app.include_router(
-    sensors_router,
-    prefix=f"{config.API_V1_PREFIX}/sensors",
-    tags=["sensors"],
+    stations_router,
+    prefix=f"{config.API_V1_PREFIX}/stations",
+    tags=["stations"],
 )
 app.include_router(
     astrocast_router,
