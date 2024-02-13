@@ -2,6 +2,7 @@ from fastapi import FastAPI, status, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import config
 from app.stations.views import router as stations_router
+from app.sensor_devices.views import router as sensor_devices_router
 from app.astrocast.views import router as astrocast_router
 from app.astrocast.classes import astrocast_api
 from pydantic import BaseModel
@@ -71,4 +72,9 @@ app.include_router(
     astrocast_router,
     prefix=f"{config.API_V1_PREFIX}/astrocast",
     tags=["astrocast"],
+)
+app.include_router(
+    sensor_devices_router,
+    prefix=f"{config.API_V1_PREFIX}/sensor_devices",
+    tags=["devices"],
 )
