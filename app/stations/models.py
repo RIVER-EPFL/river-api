@@ -8,12 +8,19 @@ import datetime
 class StationBase(SQLModel):
     name: str = Field(default=None, index=True)
     description: str | None = Field(default=None)
-    comment: str | None = Field(default=None)
+    acronym: str | None = Field(default=None)
+    catchment_name: str | None = Field(default=None)
     time_added_utc: datetime.datetime = Field(
         default_factory=datetime.datetime.utcnow,
         nullable=True,
         index=True,
     )
+
+    # Station coordinates (reference system agnostic), just metadata not needed
+    # for the actual data collection or mapping purposes
+    x_coordinate: float | None = Field(default=None)
+    y_coordinate: float | None = Field(default=None)
+
     associated_astrocast_device: str | None = Field(default=None)
 
 
@@ -30,12 +37,10 @@ class Station(StationBase, table=True):
         index=True,
         nullable=False,
     )
-    geom: Any = Field(sa_column=Column(Geometry("POINT", srid=4326)))
 
 
 class StationRead(StationBase):
     id: UUID
-    geom: Any
 
 
 class StationCreate(StationBase):

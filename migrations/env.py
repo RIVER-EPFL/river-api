@@ -10,6 +10,7 @@ from sqlmodel import SQLModel
 from geoalchemy2 import alembic_helpers
 from app.stations.models import Station
 from app.astrocast.models import AstrocastMessage
+from app.sensor_devices.models import SensorDevice
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
