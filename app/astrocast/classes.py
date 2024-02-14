@@ -1,7 +1,7 @@
 import aiohttp
 from app.config import config
 from app.astrocast.models import (
-    AstrocaseMessageCreate,
+    AstrocastMessageCreate,
     AstrocastMessage,
     AstrocastDeviceSummary,
     AstrocastDevice,
@@ -10,6 +10,7 @@ import tenacity
 from sqlmodel import select
 import asyncio
 import datetime
+import sqlalchemy
 from app.db import async_session
 from uuid import UUID
 from functools import lru_cache
@@ -203,7 +204,8 @@ class AstrocastAPI:
         message: dict,
     ) -> None:
         """Add a message to the database"""
-        payload = AstrocaseMessageCreate(
+        print("MSG", message)
+        payload = AstrocastMessageCreate(
             requested_at=self.last_polling_time,
             messageGuid=message["messageGuid"],
             deviceGuid=message["deviceGuid"],
@@ -215,17 +217,22 @@ class AstrocastAPI:
             messageSize=message["messageSize"],
             callbackDeliveryStatus=message["callbackDeliveryStatus"],
         )
-        import sqlalchemy
 
         try:
             async with async_session() as db_session:
-                obj_astrocast = AstrocastMessage.from_orm(payload)
+                obj_astrocast = AstrocastMessage.model_validate(payload)
+                print(obj_astrocast)
                 db_session.add(obj_astrocast)
                 await db_session.commit()
+                await db_session.refresh()
         except sqlalchemy.exc.IntegrityError:
             print(
                 f'Duplicate messageGuid ({message["messageGuid"]}), skipping...',
             )
+        except Exception as e:
+            print(f"Error adding message to db: {e}")
+        finally:
+            print("Message added to db")
 
     async def get_time_of_last_saved_message(
         self,

@@ -20,7 +20,59 @@ class StationBase(SQLModel):
     x_coordinate: float | None = Field(default=None)
     y_coordinate: float | None = Field(default=None)
 
-    associated_astrocast_device: str | None = Field(default=None)
+    # There are 15 possible sensor slots on the station
+    # Each slot can have a sensor device associated with it
+    sensor_device_1: UUID | None = Field(
+        default=None, foreign_key="sensordevice.id"
+    )
+    sensor_device_2: UUID | None = Field(
+        default=None, foreign_key="sensordevice.id"
+    )
+    sensor_device_3: UUID | None = Field(
+        default=None, foreign_key="sensordevice.id"
+    )
+    sensor_device_4: UUID | None = Field(
+        default=None, foreign_key="sensordevice.id"
+    )
+    sensor_device_5: UUID | None = Field(
+        default=None, foreign_key="sensordevice.id"
+    )
+    sensor_device_6: UUID | None = Field(
+        default=None, foreign_key="sensordevice.id"
+    )
+    sensor_device_7: UUID | None = Field(
+        default=None, foreign_key="sensordevice.id"
+    )
+    sensor_device_8: UUID | None = Field(
+        default=None, foreign_key="sensordevice.id"
+    )
+    sensor_device_9: UUID | None = Field(
+        default=None, foreign_key="sensordevice.id"
+    )
+    sensor_device_10: UUID | None = Field(
+        default=None, foreign_key="sensordevice.id"
+    )
+    sensor_device_11: UUID | None = Field(
+        default=None, foreign_key="sensordevice.id"
+    )
+    sensor_device_12: UUID | None = Field(
+        default=None, foreign_key="sensordevice.id"
+    )
+    sensor_device_13: UUID | None = Field(
+        default=None, foreign_key="sensordevice.id"
+    )
+    sensor_device_14: UUID | None = Field(
+        default=None, foreign_key="sensordevice.id"
+    )
+    sensor_device_15: UUID | None = Field(
+        default=None, foreign_key="sensordevice.id"
+    )
+
+    # Astrocast device associated with the station
+
+    associated_astrocast_device: str | None = Field(
+        default=None,
+    )  # Astrocast device ID external (maybe UUID, but str to be safe)
 
 
 class Station(StationBase, table=True):

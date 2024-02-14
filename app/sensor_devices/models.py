@@ -14,6 +14,8 @@ class SensorDeviceBase(SQLModel):
     installed_on: datetime.datetime | None
     calibrated_on: datetime.datetime | None
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("installed_on", "calibrated_on", pre=False, always=True)
     def remove_timezone(cls, v):
         if v is None:

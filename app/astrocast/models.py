@@ -2,7 +2,8 @@ from sqlmodel import SQLModel, Field, Column, Relationship, UniqueConstraint
 import datetime
 import base64
 from uuid import uuid4, UUID
-from pydantic import root_validator
+from pydantic import model_validator
+from typing_extensions import Self
 
 
 class AstrocastMessageBase(SQLModel):
@@ -22,7 +23,7 @@ class AstrocastMessageBase(SQLModel):
     longitude: float | None
     data: str | None
     messageSize: int | None
-    callbackDeliveryStatus: str | None
+    callbackDeliveryStatus: int | None
 
 
 class AstrocastMessage(AstrocastMessageBase, table=True):
@@ -40,7 +41,7 @@ class AstrocastMessage(AstrocastMessageBase, table=True):
     )
 
 
-class AstrocaseMessageCreate(AstrocastMessageBase):
+class AstrocastMessageCreate(AstrocastMessageBase):
     pass
 
 
@@ -48,17 +49,17 @@ class AstrocastMessageRead(AstrocastMessageBase):
     id: UUID
     decoded_data: str | None = None
 
-    @root_validator(pre=True)
-    def decode_data(cls, values: dict) -> dict:
+    @model_validator(mode="after")
+    def decode_data(self) -> Self:
         """Decode the data in data and place it into decoded_data"""
-        if values.get("data") is not None:
-            decoded_data = base64.b64decode(values["data"]).decode("utf-8")
+        if self.data is not None:
+            decoded_data = base64.b64decode(self.data).decode("utf-8")
             print(decoded_data)
 
-            values = dict(values)  # Make a copy of the values
-            values["decoded_data"] = decoded_data
+            # values = dict(values)  # Make a copy of the values
+            self.decoded_data = decoded_data
 
-        return values
+        return self
 
 
 class AstrocastDeviceSummary(SQLModel):
@@ -72,7 +73,8 @@ class AstrocastDeviceSummary(SQLModel):
     commandsCount: int | None
     commandsSize: int | None
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def set_device_id_from_guid(cls, values: dict) -> dict:
         """Set the device id from the deviceGuid
 
@@ -110,7 +112,8 @@ class AstrocastDevice(SQLModel):
     registrationEnabled: bool | None
     billingExcluded: bool | None
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def set_device_id_from_guid(cls, values: dict) -> dict:
         """Set the device id from the deviceGuid
 

@@ -1,4 +1,4 @@
-from pydantic import root_validator
+from pydantic import model_validator
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
@@ -27,7 +27,8 @@ class Config(BaseSettings):
     ASTROCAST_RETRY_MIN_WAIT_SECONDS: int = 1
     ASTROCAST_RETRY_MAX_WAIT_SECONDS: int = 5
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def form_db_url(cls, values: dict) -> dict:
         """Form the DB URL from the settings"""
         if "DB_URL" not in values:

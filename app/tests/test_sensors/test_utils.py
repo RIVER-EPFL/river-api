@@ -1,4 +1,4 @@
-from app.sensors.utils import SensorMeasurement
+from app.stations.utils import StationMeasurement
 import pytest
 
 
@@ -31,7 +31,7 @@ def test_conversion_from_bytes(
             print(f"{sensor}: {values}")
 
             # Define the sensor object
-            sensor_obj = SensorMeasurement(
+            sensor_obj = StationMeasurement(
                 int(values["Min"]),
                 int(values["Max"]),
             )
