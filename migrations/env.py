@@ -7,9 +7,10 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from app.config import config as app_config
 from alembic import context
 from sqlmodel import SQLModel
-from app.stations.models import Station
-from app.astrocast.models import AstrocastMessage
-from app.sensor_devices.models import SensorDevice
+from app.stations.models import Station  # noqa
+from app.station_sensors.models import StationSensorAssignments  # noqa
+from app.astrocast.models import AstrocastMessage  # noqa
+from app.sensors.models import Sensor  # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

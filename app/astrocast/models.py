@@ -54,7 +54,6 @@ class AstrocastMessageRead(AstrocastMessageBase):
         """Decode the data in data and place it into decoded_data"""
         if self.data is not None:
             decoded_data = base64.b64decode(self.data).decode("utf-8")
-            print(decoded_data)
 
             # values = dict(values)  # Make a copy of the values
             self.decoded_data = decoded_data
@@ -87,8 +86,8 @@ class AstrocastDeviceSummary(SQLModel):
 
 
 class AstrocastDevice(SQLModel):
-    id: UUID
-    deviceGuid: UUID
+    id: UUID | None
+    deviceGuid: UUID | None
     name: str | None
     description: str | None
     deviceType: int | None
@@ -112,14 +111,13 @@ class AstrocastDevice(SQLModel):
     registrationEnabled: bool | None
     billingExcluded: bool | None
 
-    @model_validator(mode="before")
-    @classmethod
-    def set_device_id_from_guid(cls, values: dict) -> dict:
+    @model_validator(mode="after")
+    def set_device_id_from_guid(self) -> Self:
         """Set the device id from the deviceGuid
 
         Necessary for react-admin as it always needs an ID field"""
-        if values.get("deviceGuid") is not None:
-            values = dict(values)
-            values["id"] = values["deviceGuid"]
+        if self.deviceGuid is not None:
+            # values = dict(values)
+            self.id = self.deviceGuid
 
-        return values
+        return self

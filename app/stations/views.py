@@ -22,8 +22,7 @@ async def get_station(
 ) -> StationRead:
     """Get an station by id"""
 
-    # Do a query on the station data, at the moment this is raw, but should
-    # probably be aggregated by day
+    # Query for the station with the sensor data
     query = select(Station).where(Station.id == station_id)
     res = await session.execute(query)
     station_data = res.scalars().one_or_none()
@@ -50,9 +49,15 @@ async def get_stations(
     if len(filter):  # Have to filter twice for some reason? SQLModel state?
         for field, value in filter.items():
             if field == "id":
-                count_query = count_query.filter(
-                    getattr(Station, field) == value
-                )
+                if isinstance(value, list):
+                    for v in value:
+                        count_query = count_query.filter(
+                            getattr(Station, field) == v
+                        )
+                else:
+                    count_query = count_query.filter(
+                        getattr(Station, field) == value
+                    )
             else:
                 count_query = count_query.filter(
                     getattr(Station, field).like(f"%{str(value)}%")
@@ -76,7 +81,15 @@ async def get_stations(
     if len(filter):
         for field, value in filter.items():
             if field == "id":
-                query = query.filter(getattr(Station, field) == value)
+                if isinstance(value, list):
+                    for v in value:
+                        count_query = count_query.filter(
+                            getattr(Station, field) == v
+                        )
+                else:
+                    count_query = count_query.filter(
+                        getattr(Station, field) == value
+                    )
             else:
                 query = query.filter(
                     getattr(Station, field).like(f"%{str(value)}%")

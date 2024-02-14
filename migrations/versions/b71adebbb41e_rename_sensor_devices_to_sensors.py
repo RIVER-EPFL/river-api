@@ -1,8 +1,8 @@
-"""Reinit DB without geospatial library, add sensor slots to station
+"""Rename sensor devices to sensors
 
-Revision ID: 2999c593bbba
+Revision ID: b71adebbb41e
 Revises: 
-Create Date: 2024-02-14 12:11:37.384320
+Create Date: 2024-02-14 14:18:04.037117
 
 """
 from typing import Sequence, Union
@@ -13,7 +13,7 @@ import sqlmodel
 
 
 # revision identifiers, used by Alembic.
-revision: str = '2999c593bbba'
+revision: str = 'b71adebbb41e'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -31,7 +31,7 @@ def upgrade() -> None:
     sa.Column('longitude', sa.Float(), nullable=True),
     sa.Column('data', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('messageSize', sa.Integer(), nullable=True),
-    sa.Column('callbackDeliveryStatus', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('callbackDeliveryStatus', sa.Integer(), nullable=True),
     sa.Column('iterator', sa.Integer(), nullable=False),
     sa.Column('id', sqlmodel.sql.sqltypes.GUID(), nullable=False),
     sa.PrimaryKeyConstraint('iterator'),
@@ -40,22 +40,21 @@ def upgrade() -> None:
     op.create_index(op.f('ix_astrocastmessage_id'), 'astrocastmessage', ['id'], unique=False)
     op.create_index(op.f('ix_astrocastmessage_iterator'), 'astrocastmessage', ['iterator'], unique=False)
     op.create_index(op.f('ix_astrocastmessage_requested_at'), 'astrocastmessage', ['requested_at'], unique=False)
-    op.create_table('sensordevice',
+    op.create_table('sensor',
     sa.Column('parameter_name', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('parameter_acronym', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('parameter_unit', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('parameter_db_name', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('serial_number', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('model', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('installed_on', sa.DateTime(), nullable=True),
     sa.Column('calibrated_on', sa.DateTime(), nullable=True),
     sa.Column('iterator', sa.Integer(), nullable=False),
     sa.Column('id', sqlmodel.sql.sqltypes.GUID(), nullable=False),
     sa.PrimaryKeyConstraint('iterator'),
     sa.UniqueConstraint('id')
     )
-    op.create_index(op.f('ix_sensordevice_id'), 'sensordevice', ['id'], unique=False)
-    op.create_index(op.f('ix_sensordevice_iterator'), 'sensordevice', ['iterator'], unique=False)
+    op.create_index(op.f('ix_sensor_id'), 'sensor', ['id'], unique=False)
+    op.create_index(op.f('ix_sensor_iterator'), 'sensor', ['iterator'], unique=False)
     op.create_table('station',
     sa.Column('name', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
@@ -64,39 +63,9 @@ def upgrade() -> None:
     sa.Column('time_added_utc', sa.DateTime(), nullable=True),
     sa.Column('x_coordinate', sa.Float(), nullable=True),
     sa.Column('y_coordinate', sa.Float(), nullable=True),
-    sa.Column('sensor_device_1', sqlmodel.sql.sqltypes.GUID(), nullable=True),
-    sa.Column('sensor_device_2', sqlmodel.sql.sqltypes.GUID(), nullable=True),
-    sa.Column('sensor_device_3', sqlmodel.sql.sqltypes.GUID(), nullable=True),
-    sa.Column('sensor_device_4', sqlmodel.sql.sqltypes.GUID(), nullable=True),
-    sa.Column('sensor_device_5', sqlmodel.sql.sqltypes.GUID(), nullable=True),
-    sa.Column('sensor_device_6', sqlmodel.sql.sqltypes.GUID(), nullable=True),
-    sa.Column('sensor_device_7', sqlmodel.sql.sqltypes.GUID(), nullable=True),
-    sa.Column('sensor_device_8', sqlmodel.sql.sqltypes.GUID(), nullable=True),
-    sa.Column('sensor_device_9', sqlmodel.sql.sqltypes.GUID(), nullable=True),
-    sa.Column('sensor_device_10', sqlmodel.sql.sqltypes.GUID(), nullable=True),
-    sa.Column('sensor_device_11', sqlmodel.sql.sqltypes.GUID(), nullable=True),
-    sa.Column('sensor_device_12', sqlmodel.sql.sqltypes.GUID(), nullable=True),
-    sa.Column('sensor_device_13', sqlmodel.sql.sqltypes.GUID(), nullable=True),
-    sa.Column('sensor_device_14', sqlmodel.sql.sqltypes.GUID(), nullable=True),
-    sa.Column('sensor_device_15', sqlmodel.sql.sqltypes.GUID(), nullable=True),
     sa.Column('associated_astrocast_device', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('iterator', sa.Integer(), nullable=False),
     sa.Column('id', sqlmodel.sql.sqltypes.GUID(), nullable=False),
-    sa.ForeignKeyConstraint(['sensor_device_1'], ['sensordevice.id'], ),
-    sa.ForeignKeyConstraint(['sensor_device_10'], ['sensordevice.id'], ),
-    sa.ForeignKeyConstraint(['sensor_device_11'], ['sensordevice.id'], ),
-    sa.ForeignKeyConstraint(['sensor_device_12'], ['sensordevice.id'], ),
-    sa.ForeignKeyConstraint(['sensor_device_13'], ['sensordevice.id'], ),
-    sa.ForeignKeyConstraint(['sensor_device_14'], ['sensordevice.id'], ),
-    sa.ForeignKeyConstraint(['sensor_device_15'], ['sensordevice.id'], ),
-    sa.ForeignKeyConstraint(['sensor_device_2'], ['sensordevice.id'], ),
-    sa.ForeignKeyConstraint(['sensor_device_3'], ['sensordevice.id'], ),
-    sa.ForeignKeyConstraint(['sensor_device_4'], ['sensordevice.id'], ),
-    sa.ForeignKeyConstraint(['sensor_device_5'], ['sensordevice.id'], ),
-    sa.ForeignKeyConstraint(['sensor_device_6'], ['sensordevice.id'], ),
-    sa.ForeignKeyConstraint(['sensor_device_7'], ['sensordevice.id'], ),
-    sa.ForeignKeyConstraint(['sensor_device_8'], ['sensordevice.id'], ),
-    sa.ForeignKeyConstraint(['sensor_device_9'], ['sensordevice.id'], ),
     sa.PrimaryKeyConstraint('iterator'),
     sa.UniqueConstraint('id')
     )
@@ -104,19 +73,36 @@ def upgrade() -> None:
     op.create_index(op.f('ix_station_iterator'), 'station', ['iterator'], unique=False)
     op.create_index(op.f('ix_station_name'), 'station', ['name'], unique=False)
     op.create_index(op.f('ix_station_time_added_utc'), 'station', ['time_added_utc'], unique=False)
+    op.create_table('stationsensorassignments',
+    sa.Column('iterator', sa.Integer(), nullable=False),
+    sa.Column('id', sqlmodel.sql.sqltypes.GUID(), nullable=False),
+    sa.Column('installed_on', sa.DateTime(), nullable=False),
+    sa.Column('sensor_position', sa.Integer(), nullable=False),
+    sa.Column('station_id', sqlmodel.sql.sqltypes.GUID(), nullable=False),
+    sa.Column('sensor_device_id', sqlmodel.sql.sqltypes.GUID(), nullable=False),
+    sa.ForeignKeyConstraint(['sensor_device_id'], ['sensor.id'], ),
+    sa.ForeignKeyConstraint(['station_id'], ['station.id'], ),
+    sa.PrimaryKeyConstraint('iterator'),
+    sa.UniqueConstraint('sensor_position', 'station_id', 'sensor_device_id', name='your_unique_constraint_name')
+    )
+    op.create_index(op.f('ix_stationsensorassignments_id'), 'stationsensorassignments', ['id'], unique=False)
+    op.create_index(op.f('ix_stationsensorassignments_iterator'), 'stationsensorassignments', ['iterator'], unique=False)
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_index(op.f('ix_stationsensorassignments_iterator'), table_name='stationsensorassignments')
+    op.drop_index(op.f('ix_stationsensorassignments_id'), table_name='stationsensorassignments')
+    op.drop_table('stationsensorassignments')
     op.drop_index(op.f('ix_station_time_added_utc'), table_name='station')
     op.drop_index(op.f('ix_station_name'), table_name='station')
     op.drop_index(op.f('ix_station_iterator'), table_name='station')
     op.drop_index(op.f('ix_station_id'), table_name='station')
     op.drop_table('station')
-    op.drop_index(op.f('ix_sensordevice_iterator'), table_name='sensordevice')
-    op.drop_index(op.f('ix_sensordevice_id'), table_name='sensordevice')
-    op.drop_table('sensordevice')
+    op.drop_index(op.f('ix_sensor_iterator'), table_name='sensor')
+    op.drop_index(op.f('ix_sensor_id'), table_name='sensor')
+    op.drop_table('sensor')
     op.drop_index(op.f('ix_astrocastmessage_requested_at'), table_name='astrocastmessage')
     op.drop_index(op.f('ix_astrocastmessage_iterator'), table_name='astrocastmessage')
     op.drop_index(op.f('ix_astrocastmessage_id'), table_name='astrocastmessage')

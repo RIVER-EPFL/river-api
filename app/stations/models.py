@@ -1,7 +1,12 @@
 from sqlmodel import SQLModel, Field, Column, Relationship, UniqueConstraint
 from uuid import uuid4, UUID
-from typing import Any
+from typing import Any, TYPE_CHECKING
 import datetime
+from pydantic import field_validator
+from app.station_sensors.models import StationSensorAssignments
+
+if TYPE_CHECKING:
+    from app.sensors.models import Sensor
 
 
 class StationBase(SQLModel):
@@ -19,54 +24,6 @@ class StationBase(SQLModel):
     # for the actual data collection or mapping purposes
     x_coordinate: float | None = Field(default=None)
     y_coordinate: float | None = Field(default=None)
-
-    # There are 15 possible sensor slots on the station
-    # Each slot can have a sensor device associated with it
-    sensor_device_1: UUID | None = Field(
-        default=None, foreign_key="sensordevice.id"
-    )
-    sensor_device_2: UUID | None = Field(
-        default=None, foreign_key="sensordevice.id"
-    )
-    sensor_device_3: UUID | None = Field(
-        default=None, foreign_key="sensordevice.id"
-    )
-    sensor_device_4: UUID | None = Field(
-        default=None, foreign_key="sensordevice.id"
-    )
-    sensor_device_5: UUID | None = Field(
-        default=None, foreign_key="sensordevice.id"
-    )
-    sensor_device_6: UUID | None = Field(
-        default=None, foreign_key="sensordevice.id"
-    )
-    sensor_device_7: UUID | None = Field(
-        default=None, foreign_key="sensordevice.id"
-    )
-    sensor_device_8: UUID | None = Field(
-        default=None, foreign_key="sensordevice.id"
-    )
-    sensor_device_9: UUID | None = Field(
-        default=None, foreign_key="sensordevice.id"
-    )
-    sensor_device_10: UUID | None = Field(
-        default=None, foreign_key="sensordevice.id"
-    )
-    sensor_device_11: UUID | None = Field(
-        default=None, foreign_key="sensordevice.id"
-    )
-    sensor_device_12: UUID | None = Field(
-        default=None, foreign_key="sensordevice.id"
-    )
-    sensor_device_13: UUID | None = Field(
-        default=None, foreign_key="sensordevice.id"
-    )
-    sensor_device_14: UUID | None = Field(
-        default=None, foreign_key="sensordevice.id"
-    )
-    sensor_device_15: UUID | None = Field(
-        default=None, foreign_key="sensordevice.id"
-    )
 
     # Astrocast device associated with the station
 
@@ -89,9 +46,20 @@ class Station(StationBase, table=True):
         nullable=False,
     )
 
+    sensors: list["Sensor"] = Relationship(
+        back_populates="stations",
+        link_model=StationSensorAssignments,
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )
+    sensor_link: StationSensorAssignments = Relationship(
+        back_populates="station",
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )
+
 
 class StationRead(StationBase):
     id: UUID
+    sensors: list[Any] = []
 
 
 class StationCreate(StationBase):

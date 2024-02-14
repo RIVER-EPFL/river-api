@@ -8,7 +8,7 @@ def test_conversion_from_bytes(
 
     sensors = {}
     for i, row in enumerate(sensor_data_6h):
-        print(f"Working on row {i}")
+        print(f"\nWorking on row {i}")
         # First compile a dictionary of values for each sensor
         for key, value in row.items():
             # Split column into {Property}_{Name}, eg. Bytes_DOmgL
@@ -27,7 +27,6 @@ def test_conversion_from_bytes(
 
         # Then for each sensor, test the conversion from bytes to measurement
         for sensor, values in sensors.items():
-            # print(sensor)
             print(f"{sensor}: {values}")
 
             # Define the sensor object
@@ -60,4 +59,3 @@ def test_conversion_from_bytes(
             assert pytest.approx(conversion, 1.0) == float(
                 float(values["value"])
             )
-        print()

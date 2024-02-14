@@ -104,7 +104,11 @@ class AstrocastAPI:
             ) as response:
                 if response.status == 200:
                     message = await response.json()
-                    device_obj = AstrocastDevice(**message)
+
+                    device_name = self.device_types.get(message["deviceType"])
+                    message["deviceTypeName"] = device_name
+                    message["id"] = message["deviceGuid"]
+                    device_obj = AstrocastDevice.model_validate(message)
                 else:
                     print("Error, something is wrong in the request.")
 
@@ -114,7 +118,6 @@ class AstrocastAPI:
         """Get devices from Astrocast"""
 
         print("Getting devices ...")
-        print(self.device_types)
         api_url = f"{self.api_url}/devices"
         devices = []
         async with aiohttp.ClientSession() as session:
@@ -129,11 +132,14 @@ class AstrocastAPI:
 
                         # Compile message into objects
                         for message in messages:
-                            device = AstrocastDevice(
-                                **message,
-                                deviceTypeName=self.device_types.get(
-                                    message["deviceType"]
-                                ),
+                            message_copy = message.copy()
+                            device_name = self.device_types.get(
+                                message["deviceType"]
+                            )
+                            message_copy["deviceTypeName"] = device_name
+                            message_copy["id"] = message["deviceGuid"]
+                            device = AstrocastDevice.model_validate(
+                                message_copy,
                             )
                             devices.append(device)
                     else:
@@ -160,9 +166,8 @@ class AstrocastAPI:
                 if response.status == 200:
                     device_types = await response.json()
                     for device_type in device_types:
-                        self.device_types[int(device_type["deviceTypeId"])] = (
-                            device_type["name"]
-                        )
+                        device_id = int(device_type["deviceTypeId"])
+                        self.device_types[device_id] = device_type["name"]
 
                     print(f"Got {len(device_types)} device types")
                 else:
@@ -190,7 +195,9 @@ class AstrocastAPI:
 
                         # Compile message into objects
                         for message in messages:
-                            device_summary = AstrocastDeviceSummary(**message)
+                            device_summary = (
+                                AstrocastDeviceSummary.model_validate(message)
+                            )
                             device_summaries.append(device_summary)
                     else:
                         print("There is no message.")
@@ -204,7 +211,7 @@ class AstrocastAPI:
         message: dict,
     ) -> None:
         """Add a message to the database"""
-        print("MSG", message)
+
         payload = AstrocastMessageCreate(
             requested_at=self.last_polling_time,
             messageGuid=message["messageGuid"],
@@ -221,7 +228,7 @@ class AstrocastAPI:
         try:
             async with async_session() as db_session:
                 obj_astrocast = AstrocastMessage.model_validate(payload)
-                print(obj_astrocast)
+
                 db_session.add(obj_astrocast)
                 await db_session.commit()
                 await db_session.refresh()

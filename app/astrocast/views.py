@@ -25,10 +25,10 @@ async def get_astrocast_message(
 ) -> AstrocastMessageRead:
     """Get an astrocast message by its local id"""
 
-    res = await session.execute(
+    res = await session.exec(
         select(AstrocastMessage).where(AstrocastMessage.id == astrocast_id)
     )
-    obj = res.scalars().one_or_none()
+    obj = res.one_or_none()
 
     return obj
 
@@ -93,8 +93,8 @@ async def get_astrocast_messages(
         start, end = [0, total_count]  # For content-range header
 
     # Execute query
-    results = await session.execute(query)
-    astrocast_messages = results.scalars().all()
+    results = await session.exec(query)
+    astrocast_messages = results.all()
 
     response.headers["Content-Range"] = (
         f"astrocast_messages {start}-{end}/{total_count}"
