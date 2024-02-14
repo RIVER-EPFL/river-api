@@ -1,6 +1,5 @@
 import aiohttp
 from app.config import config
-from fastapi import Depends
 from app.astrocast.models import (
     AstrocaseMessageCreate,
     AstrocastMessage,
@@ -8,13 +7,10 @@ from app.astrocast.models import (
     AstrocastDevice,
 )
 import tenacity
-import base64
 from sqlmodel import select
 import asyncio
 import datetime
 from app.db import async_session
-from sqlmodel.ext.asyncio.session import AsyncSession, AsyncEngine
-from sqlalchemy.orm import sessionmaker
 from uuid import UUID
 from functools import lru_cache
 
@@ -163,9 +159,9 @@ class AstrocastAPI:
                 if response.status == 200:
                     device_types = await response.json()
                     for device_type in device_types:
-                        self.device_types[
-                            int(device_type["deviceTypeId"])
-                        ] = device_type["name"]
+                        self.device_types[int(device_type["deviceTypeId"])] = (
+                            device_type["name"]
+                        )
 
                     print(f"Got {len(device_types)} device types")
                 else:

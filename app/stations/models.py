@@ -1,5 +1,4 @@
 from sqlmodel import SQLModel, Field, Column, Relationship, UniqueConstraint
-from geoalchemy2 import Geometry
 from uuid import uuid4, UUID
 from typing import Any
 import datetime
