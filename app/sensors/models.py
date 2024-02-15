@@ -56,6 +56,7 @@ class SensorCreate(SensorBase):
 
 class SensorRead(SensorBase):
     id: UUID
+    station_link: StationSensorAssignments | None = None
 
 
 class SensorUpdate(SensorBase):

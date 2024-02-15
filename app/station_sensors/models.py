@@ -45,10 +45,13 @@ class StationSensorAssignmentsBase(SQLModel):
 class StationSensorAssignments(StationSensorAssignmentsBase, table=True):
     __table_args__ = (
         UniqueConstraint(
-            "sensor_position",
-            "station_id",
             "sensor_id",
-            name="sensor_station_position_unique_constraint",
+            name="no_multiple_sensors_assigned_constraint",
+        ),
+        UniqueConstraint(
+            "station_id",
+            "sensor_position",
+            name="sensor_position_constraint",
         ),
     )
     iterator: int = Field(

@@ -7,6 +7,8 @@ from app.stations.models import (
     StationUpdate,
     StationCreate,
 )
+from app.station_sensors.models import StationSensorAssignments
+from app.sensors.models import Sensor
 from uuid import UUID
 from sqlalchemy import func
 import json
@@ -22,10 +24,12 @@ async def get_station(
 ) -> StationRead:
     """Get an station by id"""
 
-    # Query for the station with the sensor data
+    # Query for the station, joining the full sensor object where the
+    # station.sensors is the link table
     query = select(Station).where(Station.id == station_id)
-    res = await session.execute(query)
-    station_data = res.scalars().one_or_none()
+    res = await session.exec(query)
+
+    station_data = res.one_or_none()
 
     return station_data
 

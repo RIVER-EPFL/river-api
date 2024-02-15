@@ -10,6 +10,7 @@ from app.station_sensors.models import (
 from uuid import UUID
 import json
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 
 router = APIRouter()
 
@@ -18,7 +19,7 @@ router = APIRouter()
     "/{station_id}/{sensor_position}",
     response_model=StationSensorAssignmentsRead,
 )
-async def get_station_sensor(
+async def get_station_sensor_by_position(
     session: AsyncSession = Depends(get_session),
     *,
     station_id: UUID,
@@ -36,6 +37,27 @@ async def get_station_sensor(
         select(StationSensorAssignments)
         .where(StationSensorAssignments.station_id == station_id)
         .where(StationSensorAssignments.sensor_position == sensor_position)
+    )
+    obj = res.one_or_none()
+
+    return obj
+
+
+@router.get(
+    "/{station_sensor_id}",
+    response_model=StationSensorAssignmentsRead,
+)
+async def get_station_sensor(
+    session: AsyncSession = Depends(get_session),
+    *,
+    station_sensor_id: UUID,
+) -> StationSensorAssignmentsRead:
+    """Get a station sensor relation by its local id"""
+
+    res = await session.exec(
+        select(StationSensorAssignments).where(
+            StationSensorAssignments.id == station_sensor_id
+        )
     )
     obj = res.one_or_none()
 
@@ -141,46 +163,53 @@ async def create_station_sensor_mapping(
     """Creates a station-sensor mapping"""
 
     obj = StationSensorAssignments.model_validate(station_sensor)
-    session.add(obj)
+    try:
+        session.add(obj)
 
-    await session.commit()
+        await session.commit()
+    except IntegrityError as e:
+        # Catch integrity error
+        # except Exception as e:
+
+        await session.rollback()
+
+        if "sensor_position_constraint" in str(e.orig):
+            raise HTTPException(
+                status_code=409,
+                detail=f"Position {obj.sensor_position} already assigned to a "
+                f"sensor on station {obj.station_id}",
+            )
+        else:
+            raise HTTPException(
+                status_code=409,
+                detail="Integrity error, likely a duplicate entry",
+            )
     await session.refresh(obj)
 
     return obj
 
 
 @router.put(
-    "/{station_id}/{sensor_position}",
+    "/{station_sensor_id}",
     response_model=StationSensorAssignmentsRead,
 )
 async def update_sensor(
-    station_id: UUID,
-    sensor_position: int,
+    station_sensor_id: UUID,
     station_sensor_update: StationSensorAssignmentsUpdate,
     session: AsyncSession = Depends(get_session),
 ) -> StationSensorAssignmentsRead:
     """Update the mapping of a sensor to a station by id and position"""
 
     res = await session.exec(
-        select(StationSensorAssignments)
-        .where(StationSensorAssignments.station_id == station_id)
-        .where(StationSensorAssignments.sensor_position == sensor_position)
+        select(StationSensorAssignments).where(
+            StationSensorAssignments.id == station_sensor_id
+        )
     )
     station_sensor_db = res.one_or_none()
-
     if not station_sensor_db:
-        # Create a new sensor mapping if it doesn't exist
-        obj = StationSensorAssignments.model_validate(station_sensor_update)
-        session.add(obj)
-        await session.commit()
-        await session.refresh(obj)
-
-        return obj
+        raise HTTPException(status_code=404, detail="Station-Sensor not found")
 
     station_sensor_data = station_sensor_update.model_dump(exclude_unset=True)
-
-    if not station_sensor_db:
-        raise HTTPException(status_code=404, detail="Device not found")
 
     # Update the fields from the request
     for field, value in station_sensor_data.items():
@@ -195,20 +224,19 @@ async def update_sensor(
 
 
 @router.delete(
-    "/{station_id}/{sensor_position}",
+    "/{station_sensor_id}",
 )
 async def delete_station_sensor_mapping(
-    station_id: UUID,
-    sensor_position: int,
+    station_sensor_id: UUID,
     session: AsyncSession = Depends(get_session),
     filter: dict[str, str] | None = None,
 ) -> None:
     """Remove a sensor from a station by id and position"""
 
     res = await session.exec(
-        select(StationSensorAssignments)
-        .where(StationSensorAssignments.station_id == station_id)
-        .where(StationSensorAssignments.sensor_position == sensor_position)
+        select(StationSensorAssignments).where(
+            StationSensorAssignments.id == station_sensor_id
+        )
     )
     station_sensor = res.one_or_none()
 

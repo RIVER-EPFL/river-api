@@ -3,7 +3,9 @@ from uuid import uuid4, UUID
 from typing import Any, TYPE_CHECKING
 import datetime
 from pydantic import field_validator
-from app.station_sensors.models import StationSensorAssignments
+from app.station_sensors.models import (
+    StationSensorAssignments,
+)
 
 if TYPE_CHECKING:
     from app.sensors.models import Sensor
@@ -51,7 +53,7 @@ class Station(StationBase, table=True):
         link_model=StationSensorAssignments,
         sa_relationship_kwargs={"lazy": "selectin"},
     )
-    sensor_link: StationSensorAssignments = Relationship(
+    sensor_link: list[StationSensorAssignments] = Relationship(
         back_populates="station",
         sa_relationship_kwargs={"lazy": "selectin"},
     )
@@ -60,6 +62,7 @@ class Station(StationBase, table=True):
 class StationRead(StationBase):
     id: UUID
     sensors: list[Any] = []
+    sensor_link: list[Any] = []
 
 
 class StationCreate(StationBase):

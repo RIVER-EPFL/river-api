@@ -8,8 +8,10 @@ from app.sensors.models import (
     SensorUpdate,
 )
 from uuid import UUID
-from sqlalchemy import func
+from sqlalchemy import func, not_
 import json
+
+from sqlalchemy.exc import IntegrityError
 
 router = APIRouter()
 
@@ -37,7 +39,11 @@ async def get_sensors(
     sort: str = Query(None),
     range: str = Query(None),
 ) -> list[SensorRead]:
-    """Get all sensors"""
+    """Get all sensors
+
+    Filter query on station_link as true false returns results with a station
+    link or not.
+    """
 
     sort = json.loads(sort) if sort else []
     range = json.loads(range) if range else []
@@ -56,6 +62,14 @@ async def get_sensors(
                 else:
                     count_query = count_query.filter(
                         getattr(Sensor, field) == value
+                    )
+            elif field == "station_link":
+                # Boolean query on if there's a station link (true)/not (false)
+                if value:  # Query on if there's a station link
+                    count_query = count_query.filter(Sensor.station_link.has())
+                else:
+                    count_query = count_query.filter(  # No station link
+                        not_(Sensor.station_link.has())
                     )
             else:
                 count_query = count_query.filter(
@@ -89,6 +103,12 @@ async def get_sensors(
                     count_query = count_query.filter(
                         getattr(Sensor, field) == value
                     )
+            elif field == "station_link":
+                # Boolean query on if there's a station link (true)/not (false)
+                if value:
+                    query = query.filter(Sensor.station_link.has())
+                else:
+                    query = query.filter(not_(Sensor.station_link.has()))
             else:
                 query = query.filter(
                     getattr(Sensor, field).like(f"%{str(value)}%")
