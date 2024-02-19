@@ -6,11 +6,12 @@ from app.sensors.models import (
     Sensor,
     SensorCreate,
     SensorUpdate,
+    SensorCalibration,
 )
 from uuid import UUID
 from sqlalchemy import func, not_
 import json
-
+from typing import Any
 from sqlalchemy.exc import IntegrityError
 
 router = APIRouter()
@@ -157,10 +158,28 @@ async def update_sensor(
     if not sensor_db:
         raise HTTPException(status_code=404, detail="Device not found")
 
+    # We should replace the
+    sensor_calibrations = []
     # Update the fields from the request
     for field, value in sensor_data.items():
-        print(f"Updating: {field}, {value}")
-        setattr(sensor_db, field, value)
+        if field == "calibrations":
+            # First delete all the calibrations if there are any
+            if sensor_db.calibrations:
+
+                for db_obj in sensor_db.calibrations:
+                    print(db_obj)
+                    await session.delete(db_obj)
+
+            # Update the calibrations
+            for calibration in value:
+                print(calibration)
+                obj = SensorCalibration.model_validate(calibration)
+                sensor_db.calibrations.append(obj)
+                # session.add(obj)
+                # sensor_db.calibrations.append(obj)
+            setattr(sensor_db.calibrations, field, sensor_calibrations)
+        else:
+            setattr(sensor_db, field, value)
 
     session.add(sensor_db)
     await session.commit()

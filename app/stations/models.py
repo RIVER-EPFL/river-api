@@ -7,8 +7,9 @@ from app.station_sensors.models import (
     StationSensorAssignments,
 )
 
-if TYPE_CHECKING:
-    from app.sensors.models import Sensor
+from app.sensors.models import Sensor, SensorRead
+
+# if TYPE_CHECKING:
 
 
 class StationBase(SQLModel):
@@ -48,7 +49,8 @@ class Station(StationBase, table=True):
         nullable=False,
     )
 
-    sensors: list["Sensor"] = Relationship(
+    # Load full sensor relationship with all nested relationships (calibrations, sensor_link)
+    sensors: list[Sensor] = Relationship(
         back_populates="stations",
         link_model=StationSensorAssignments,
         sa_relationship_kwargs={"lazy": "selectin"},
@@ -61,8 +63,8 @@ class Station(StationBase, table=True):
 
 class StationRead(StationBase):
     id: UUID
-    sensors: list[Any] = []
-    sensor_link: list[Any] = []
+    sensors: list[SensorRead] = []
+    sensor_link: list[StationSensorAssignments] = []
 
 
 class StationCreate(StationBase):

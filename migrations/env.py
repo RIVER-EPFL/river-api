@@ -10,7 +10,7 @@ from sqlmodel import SQLModel
 from app.stations.models import Station  # noqa
 from app.station_sensors.models import StationSensorAssignments  # noqa
 from app.astrocast.models import AstrocastMessage  # noqa
-from app.sensors.models import Sensor  # noqa
+from app.sensors.models import Sensor, SensorCalibration  # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
