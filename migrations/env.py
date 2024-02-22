@@ -7,8 +7,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from app.config import config as app_config
 from alembic import context
 from sqlmodel import SQLModel
-from app.stations.models import Station  # noqa
-from app.station_sensors.models import StationSensorAssignments  # noqa
+from app.stations.models import Station, StationSensorAssignments  # noqa
 from app.astrocast.models import AstrocastMessage  # noqa
 from app.sensors.models import Sensor, SensorCalibration  # noqa
 

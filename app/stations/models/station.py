@@ -3,13 +3,10 @@ from uuid import uuid4, UUID
 from typing import Any, TYPE_CHECKING
 import datetime
 from pydantic import field_validator
-from app.station_sensors.models import (
-    StationSensorAssignments,
-)
-
-from app.sensors.models import Sensor, SensorRead
+from app.stations.models.station_sensors import StationSensorAssignments
 
 # if TYPE_CHECKING:
+from app.sensors.models import Sensor, SensorRead
 
 
 class StationBase(SQLModel):
@@ -50,12 +47,12 @@ class Station(StationBase, table=True):
     )
 
     # Load full sensor relationship with all nested relationships (calibrations, sensor_link)
-    sensors: list[Sensor] = Relationship(
+    sensors: list["Sensor"] = Relationship(
         back_populates="stations",
         link_model=StationSensorAssignments,
         sa_relationship_kwargs={"lazy": "selectin"},
     )
-    sensor_link: list[StationSensorAssignments] = Relationship(
+    sensor_link: list["StationSensorAssignments"] = Relationship(
         back_populates="station",
         sa_relationship_kwargs={"lazy": "selectin"},
     )

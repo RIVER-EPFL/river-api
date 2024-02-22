@@ -1,12 +1,12 @@
-from sqlmodel import SQLModel, Field, UniqueConstraint, Relationship
+from sqlmodel import SQLModel, Field, Column, Relationship, UniqueConstraint
 from uuid import uuid4, UUID
 from typing import Any, TYPE_CHECKING
 import datetime
 from pydantic import field_validator
 
 if TYPE_CHECKING:
-    from app.sensors.models import Sensor
-    from app.stations.models import Station
+    from app.sensors.models import Sensor, SensorRead
+    from app.stations.models.station import Station
 
 
 class StationSensorAssignmentsBase(SQLModel):
@@ -39,9 +39,20 @@ class StationSensorAssignmentsBase(SQLModel):
         return v.replace(tzinfo=None)
 
 
-# This table assigns a station to a sensor device (SensorDevice), it is a
-# many-to-many relationship that defines also the correction parameters for
-# the sensor device in the station
+class StationSensorAssignmentsCreate(StationSensorAssignmentsBase):
+    pass
+
+
+class StationSensorAssignmentsRead(StationSensorAssignmentsBase):
+    id: UUID
+    station: Any
+    sensor: Any
+
+
+class StationSensorAssignmentsUpdate(StationSensorAssignmentsBase):
+    pass
+
+
 class StationSensorAssignments(StationSensorAssignmentsBase, table=True):
     __table_args__ = (
         UniqueConstraint(
@@ -74,17 +85,3 @@ class StationSensorAssignments(StationSensorAssignmentsBase, table=True):
         back_populates="station_link",
         sa_relationship_kwargs={"lazy": "selectin"},
     )
-
-
-class StationSensorAssignmentsCreate(StationSensorAssignmentsBase):
-    pass
-
-
-class StationSensorAssignmentsRead(StationSensorAssignmentsBase):
-    id: UUID
-    station: Any
-    sensor: Any
-
-
-class StationSensorAssignmentsUpdate(StationSensorAssignmentsBase):
-    pass

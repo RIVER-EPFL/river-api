@@ -2,15 +2,15 @@ from sqlmodel import SQLModel, Field, UniqueConstraint, Relationship
 import datetime
 from uuid import uuid4, UUID
 from pydantic import field_validator
-from app.station_sensors.models import StationSensorAssignments
 from typing import Any, TYPE_CHECKING
 from sqlalchemy import case, create_engine, func
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlmodel import Field, Relationship, Session, SQLModel, select
 from pydantic import ConfigDict
+from app.stations.models.station_sensors import StationSensorAssignments
 
 if TYPE_CHECKING:
-    from app.stations.models import Station
+    from app.stations.models.station import Station
 
 
 class SensorCalibrationBase(SQLModel):
