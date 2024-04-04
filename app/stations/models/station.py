@@ -1,11 +1,7 @@
-from sqlmodel import SQLModel, Field, Column, Relationship, UniqueConstraint
+from sqlmodel import SQLModel, Field, Relationship, UniqueConstraint
 from uuid import uuid4, UUID
-from typing import Any, TYPE_CHECKING
 import datetime
-from pydantic import field_validator
-from app.stations.models.station_sensors import StationSensorAssignments
-
-# if TYPE_CHECKING:
+from app.stations.models import StationSensorAssignments
 from app.sensors.models import Sensor, SensorRead
 
 
@@ -46,7 +42,8 @@ class Station(StationBase, table=True):
         nullable=False,
     )
 
-    # Load full sensor relationship with all nested relationships (calibrations, sensor_link)
+    # Load full sensor relationship with all nested relationships
+    # (calibrations, sensor_link)
     sensors: list["Sensor"] = Relationship(
         back_populates="stations",
         link_model=StationSensorAssignments,
@@ -60,7 +57,7 @@ class Station(StationBase, table=True):
 
 class StationRead(StationBase):
     id: UUID
-    sensors: list[SensorRead] = []
+    sensors: list["SensorRead"] = []
     sensor_link: list[StationSensorAssignments] = []
 
 

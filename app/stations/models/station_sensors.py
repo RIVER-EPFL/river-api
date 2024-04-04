@@ -1,11 +1,11 @@
-from sqlmodel import SQLModel, Field, Column, Relationship, UniqueConstraint
+from sqlmodel import SQLModel, Field, Relationship, UniqueConstraint
 from uuid import uuid4, UUID
 from typing import Any, TYPE_CHECKING
 import datetime
 from pydantic import field_validator
 
 if TYPE_CHECKING:
-    from app.sensors.models import Sensor, SensorRead
+    from app.sensors.models import Sensor
     from app.stations.models.station import Station
 
 

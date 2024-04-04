@@ -11,15 +11,13 @@ from app.stations.models import (
     StationSensorAssignmentsCreate,
     StationSensorAssignmentsUpdate,
 )
-from app.sensors.models import Sensor
+
 from uuid import UUID
 from sqlalchemy import func
 import json
+from sqlalchemy.exc import IntegrityError
 
 router = APIRouter()
-
-
-## Station -> Sensors
 
 
 @router.get(
@@ -81,7 +79,6 @@ async def get_station_sensors(
     range: str = Query(None),
 ) -> list[StationSensorAssignmentsRead]:
     """Get all sensors"""
-    print("GETTING STATION SENSORS")
 
     sort = json.loads(sort) if sort else []
     range = json.loads(range) if range else []

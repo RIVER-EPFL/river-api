@@ -9,7 +9,11 @@ from alembic import context
 from sqlmodel import SQLModel
 from app.stations.models import Station, StationSensorAssignments  # noqa
 from app.astrocast.models import AstrocastMessage  # noqa
-from app.sensors.models import Sensor, SensorCalibration  # noqa
+from app.sensors.models import (  # noqa
+    Sensor,
+    SensorCalibration,
+    SensorParameter,
+)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

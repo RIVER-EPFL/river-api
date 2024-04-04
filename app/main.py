@@ -1,10 +1,12 @@
-from fastapi import FastAPI, status, BackgroundTasks
+from fastapi import FastAPI, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import config
 from app.stations.views import router as stations_router
 from app.sensors.views import router as sensor_router
 from app.astrocast.views import router as astrocast_router
 from app.astrocast.classes import astrocast_api
+from app.db import get_session, AsyncSession
+from sqlalchemy.sql import text
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 import asyncio
@@ -55,11 +57,17 @@ class HealthCheck(BaseModel):
     status_code=status.HTTP_200_OK,
     response_model=HealthCheck,
 )
-def get_health() -> HealthCheck:
+async def get_health(
+    session: AsyncSession = Depends(get_session),
+) -> HealthCheck:
     """
     Endpoint to perform a healthcheck on for kubenernetes liveness and
     readiness probes.
     """
+
+    # Test liveness to DB by executing a simple query
+    await session.exec(text("SELECT 1"))
+
     return HealthCheck(status="OK")
 
 
