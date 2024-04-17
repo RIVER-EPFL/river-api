@@ -12,8 +12,9 @@ from app.astrocast.models import AstrocastMessage  # noqa
 from app.sensors.models import (  # noqa
     Sensor,
     SensorCalibration,
-    SensorParameter,
 )
+from app.stations.data.models import StationData  # noqa
+from app.sensor_parameters.models import SensorParameter  # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -6,6 +6,7 @@ from app.sensors.views import router as sensor_router
 from app.astrocast.views import router as astrocast_router
 from app.astrocast.classes import astrocast_api
 from app.db import get_session, AsyncSession
+from app.sensor_parameters.views import sensor_parameters
 from sqlalchemy.sql import text
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
@@ -85,4 +86,9 @@ app.include_router(
     sensor_router,
     prefix=f"{config.API_V1_PREFIX}/sensors",
     tags=["sensors"],
+)
+app.include_router(
+    router=sensor_parameters.router,
+    prefix=f"{config.API_V1_PREFIX}{sensor_parameters.prefix}",
+    tags=["sensor_parameters"],
 )

@@ -3,7 +3,6 @@ import datetime
 from uuid import uuid4, UUID
 from pydantic import field_validator
 from typing import TYPE_CHECKING
-from app.sensors.models.parameters import SensorParameter
 
 if TYPE_CHECKING:
     from app.sensors.models.sensors import Sensor

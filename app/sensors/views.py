@@ -12,7 +12,7 @@ from uuid import UUID
 from sqlalchemy import func, not_
 import json
 from typing import Any
-from sqlalchemy.exc import IntegrityError
+from app.db import engine
 
 router = APIRouter()
 

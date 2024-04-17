@@ -11,6 +11,3 @@ from .calibrations import (  # noqa
     SensorCalibrationCreate,
     SensorCalibrationUpdate,
 )
-from .parameters import (  # noqa
-    SensorParameter,
-)

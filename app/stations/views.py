@@ -16,8 +16,14 @@ from uuid import UUID
 from sqlalchemy import func
 import json
 from sqlalchemy.exc import IntegrityError
+from app.stations.data.views import station_data_router
 
 router = APIRouter()
+
+
+router.include_router(
+    station_data_router.router, prefix=station_data_router.prefix
+)
 
 
 @router.get(
