@@ -1479,20 +1479,18 @@ SQLAlchemy = ">=2.0.0,<2.1.0"
 
 [[package]]
 name = "sqlmodel-react-admin"
-version = "0.0.5"
+version = "0.0.6"
 description = "Create fast SQLModel/FastAPI APIs/BFFs for React Admin"
 optional = false
-python-versions = "<4.0,>=3.11"
-files = [
-    {file = "sqlmodel_react_admin-0.0.5-py3-none-any.whl", hash = "sha256:90094b303dd139325e4292405f80a6a2d2acccac225f7e58499e74a44182bcac"},
-    {file = "sqlmodel_react_admin-0.0.5.tar.gz", hash = "sha256:4ffffd862130e8f193e5f58bfa68b53457fca251e7a18db735292cd7fed3f683"},
-]
+python-versions = "*"
+files = []
+develop = false
 
-[package.dependencies]
-fastapi = ">=0.110.1,<0.111.0"
-httpx = ">=0.27.0,<0.28.0"
-sqlmodel = ">=0.0.16,<0.0.17"
-uvicorn = ">=0.29.0,<0.30.0"
+[package.source]
+type = "git"
+url = "https://github.com/evanjt/sqlmodel-react-admin"
+reference = "main"
+resolved_reference = "a6de3c7c67a41b8d4a3a0ccadffdd9f82fcc858a"
 
 [[package]]
 name = "starlette"
@@ -1749,4 +1747,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.13"
-content-hash = "44bdccf0dac3bc777dc84ec025d48577bf2bdbbaf5ac5d841ee23cc22a537903"
+content-hash = "1ef4e5f0c8d0c55d9b4c5c905a5da9e04b611b46506b8f2522c203731f2706b2"

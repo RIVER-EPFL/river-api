@@ -5,7 +5,7 @@ from app.sensor_parameters.models import (
     SensorParameterUpdate,
 )
 from sqlmodel_react_admin.routers import ReactAdminRouter
-from app.db import engine
+from app.db import async_session
 
 
 sensor_parameters = ReactAdminRouter(
@@ -15,5 +15,5 @@ sensor_parameters = ReactAdminRouter(
     update_model=SensorParameterUpdate,
     name_singular="sensor parameter",
     prefix="/sensor_parameters",
-    db_engine=engine,
+    db_sessionmaker=async_session,
 )

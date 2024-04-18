@@ -83,12 +83,12 @@ app.include_router(
     tags=["astrocast"],
 )
 app.include_router(
-    sensor_router,
+    sensor_router.router,
     prefix=f"{config.API_V1_PREFIX}/sensors",
     tags=["sensors"],
 )
 app.include_router(
     router=sensor_parameters.router,
-    prefix=f"{config.API_V1_PREFIX}{sensor_parameters.prefix}",
+    prefix=f"{config.API_V1_PREFIX}/sensor_parameters",
     tags=["sensor_parameters"],
 )

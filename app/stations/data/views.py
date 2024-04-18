@@ -5,7 +5,7 @@ from app.stations.data.models import (
     StationDataUpdate,
 )
 from sqlmodel_react_admin.routers import ReactAdminRouter
-from app.db import engine
+from app.db import async_session
 
 station_data_router = ReactAdminRouter(
     db_model=StationData,
@@ -14,5 +14,5 @@ station_data_router = ReactAdminRouter(
     update_model=StationDataUpdate,
     name_singular="station data",
     prefix="/data",
-    db_engine=engine,
+    db_sessionmaker=async_session,
 )

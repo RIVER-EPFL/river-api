@@ -10,11 +10,13 @@ from app.sensors.models.calibrations import (
 
 if TYPE_CHECKING:
     from app.stations.models import Station
+    from app.sensor_parameters.models import SensorParameter
 
 
 class SensorBase(SQLModel):
     serial_number: str | None
     model: str | None
+    parameter_id: UUID = Field(foreign_key="sensorparameter.id")
 
 
 class Sensor(SensorBase, table=True):
@@ -40,6 +42,10 @@ class Sensor(SensorBase, table=True):
         back_populates="sensor",
         sa_relationship_kwargs={"lazy": "selectin"},
     )
+    parameter: "SensorParameter" = Relationship(
+        back_populates="sensors",
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )
     calibrations: list["SensorCalibration"] = Relationship(
         back_populates="sensor",
         sa_relationship_kwargs={
@@ -55,6 +61,7 @@ class SensorCreate(SensorBase):
 
 class SensorRead(SensorBase):
     id: UUID
+    parameter_id: UUID | None
     station_link: StationSensorAssignments | None = None
     calibrations: list["SensorCalibrationRead"] = []
 

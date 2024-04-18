@@ -18,10 +18,6 @@ class SensorCalibrationBase(SQLModel):
         foreign_key="sensor.id",
         nullable=False,
     )
-    # parameter_id: UUID = Field(
-    #     foreign_key="sensor_parameter.id",
-    #     nullable=False,
-    # )
     slope: float = Field(
         nullable=False,
     )

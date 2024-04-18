@@ -6,7 +6,12 @@ from typing import AsyncGenerator
 
 
 engine = create_async_engine(
-    config.DB_URL, echo=True, future=True, pool_pre_ping=True
+    config.DB_URL,
+    echo=True,
+    future=True,
+    pool_pre_ping=True,
+    pool_size=10,
+    max_overflow=20,
 )
 async_session = sessionmaker(
     engine, class_=AsyncSession, expire_on_commit=False
