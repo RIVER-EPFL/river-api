@@ -5,7 +5,7 @@ from .sensors import (  # noqa
     SensorUpdate,
 )
 from .calibrations import (  # noqa
-    SensorCalibration,
+    # SensorCalibration,
     SensorCalibrationRead,
     SensorCalibrationBase,
     SensorCalibrationCreate,

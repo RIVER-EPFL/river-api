@@ -9,10 +9,7 @@ from alembic import context
 from sqlmodel import SQLModel
 from app.stations.models import Station, StationSensorAssignments  # noqa
 from app.astrocast.models import AstrocastMessage  # noqa
-from app.sensors.models import (  # noqa
-    Sensor,
-    SensorCalibration,
-)
+from app.sensors.models import Sensor  # noqa
 from app.stations.data.models import StationData  # noqa
 from app.sensor_parameters.models import SensorParameter  # noqa
 

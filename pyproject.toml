@@ -23,7 +23,7 @@ requests = "^2.31.0"
 aiohttp = "^3.9.1"
 tenacity = "^8.2.3"
 pydantic-settings = "^2.1.0"
-sqlmodel-react-admin = "^0.0.6"
+sqlmodel-react-admin = { git = "https://github.com/evanjt/sqlmodel-react-admin", branch = "main" }
 
 
 [tool.poetry.group.dev.dependencies]

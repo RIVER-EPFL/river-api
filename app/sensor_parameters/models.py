@@ -2,9 +2,10 @@ from sqlmodel import SQLModel, Field, Relationship
 from uuid import UUID
 from typing import TYPE_CHECKING
 from sqlmodel_react_admin.models import ReactAdminDBModel
+from typing import Any
 
-# if TYPE_CHECKING:
-from app.sensors.models import Sensor, SensorRead
+if TYPE_CHECKING:
+    from app.sensors.models import Sensor, SensorRead
 
 
 class SensorParameterBase(SQLModel):
@@ -34,7 +35,11 @@ class SensorParameterCreate(SensorParameterBase):
 
 class SensorParameterRead(SensorParameterBase):
     id: UUID
-    sensors: list["SensorRead"] = []
+    sensors: list[Any] = []
+
+
+class SensorParameterReadWithoutSensors(SensorParameterBase):
+    id: UUID
 
 
 class SensorParameterUpdate(SensorParameterBase):

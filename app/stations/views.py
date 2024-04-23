@@ -179,9 +179,6 @@ async def create_station_sensor_mapping(
 
         await session.commit()
     except IntegrityError as e:
-        # Catch integrity error
-        # except Exception as e:
-
         await session.rollback()
 
         if "sensor_position_constraint" in str(e.orig):
@@ -221,11 +218,7 @@ async def update_sensor(
         raise HTTPException(status_code=404, detail="Station-Sensor not found")
 
     station_sensor_data = station_sensor_update.model_dump(exclude_unset=True)
-
-    # Update the fields from the request
-    for field, value in station_sensor_data.items():
-        print(f"Updating: {field}, {value}")
-        setattr(station_sensor_db, field, value)
+    station_sensor_db.sqlmodel_update(station_sensor_data)
 
     session.add(station_sensor_db)
     await session.commit()

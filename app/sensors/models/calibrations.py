@@ -1,22 +1,14 @@
-from sqlmodel import SQLModel, Field, UniqueConstraint, Relationship
+from sqlmodel import SQLModel, Field
 import datetime
-from uuid import uuid4, UUID
-from pydantic import field_validator
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from app.sensors.models.sensors import Sensor
+from pydantic import field_validator, model_validator
+from typing_extensions import Self
+from typing import Any
 
 
 class SensorCalibrationBase(SQLModel):
     calibrated_on: datetime.datetime = Field(
         nullable=False,
         index=True,
-    )
-
-    sensor_id: UUID = Field(
-        foreign_key="sensor.id",
-        nullable=False,
     )
     slope: float = Field(
         nullable=False,
@@ -31,49 +23,28 @@ class SensorCalibrationBase(SQLModel):
         nullable=False,
     )
 
-    @field_validator("calibrated_on")
-    def remove_timezone(
-        cls,
-        v: datetime.datetime | None,
-    ) -> datetime.datetime | None:
-        if v is None:
-            return v
-        return v.replace(tzinfo=None)
-
-
-class SensorCalibration(SensorCalibrationBase, table=True):
-    __table_args__ = (UniqueConstraint("id"),)
-    iterator: int = Field(
-        default=None,
-        nullable=False,
-        primary_key=True,
-        index=True,
-    )
-
-    id: UUID = Field(
-        default_factory=uuid4,
-        index=True,
-        nullable=False,
-    )
-
-    sensor: "Sensor" = Relationship(
-        back_populates="calibrations",
-        sa_relationship_kwargs={"lazy": "selectin"},
-    )
-
-    # parameter: "SensorParameter" = Relationship(
-    #     back_populates="sensors",
-    #     sa_relationship_kwargs={"lazy": "selectin"},
-    # )
-
 
 class SensorCalibrationCreate(SensorCalibrationBase):
-    pass
+    calibrated_on: str
+
+    @model_validator(mode="before")
+    def remove_timezone(cls, v) -> dict:
+        if isinstance(v.get("calibrated_on"), datetime.datetime):
+            v["calibrated_on"] = v["calibrated_on"].replace(tzinfo=None)
+
+        return v
 
 
 class SensorCalibrationRead(SensorCalibrationBase):
-    id: UUID
+    calibrated_on: datetime.datetime
 
 
 class SensorCalibrationUpdate(SensorCalibrationBase):
-    pass
+    calibrated_on: str
+
+    @model_validator(mode="before")
+    def remove_timezone(cls, v) -> dict:
+        if isinstance(v.get("calibrated_on"), datetime.datetime):
+            v["calibrated_on"] = v["calibrated_on"].replace(tzinfo=None)
+
+        return v

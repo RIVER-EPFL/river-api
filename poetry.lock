@@ -1482,15 +1482,21 @@ name = "sqlmodel-react-admin"
 version = "0.0.6"
 description = "Create fast SQLModel/FastAPI APIs/BFFs for React Admin"
 optional = false
-python-versions = "*"
+python-versions = "^3.11"
 files = []
 develop = false
+
+[package.dependencies]
+fastapi = "^0.110.1"
+httpx = "^0.27.0"
+sqlmodel = "^0.0.16"
+uvicorn = "^0.29.0"
 
 [package.source]
 type = "git"
 url = "https://github.com/evanjt/sqlmodel-react-admin"
 reference = "main"
-resolved_reference = "a6de3c7c67a41b8d4a3a0ccadffdd9f82fcc858a"
+resolved_reference = "e4b9b857937d8937f356479095ef34aeb3687949"
 
 [[package]]
 name = "starlette"
@@ -1747,4 +1753,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.13"
-content-hash = "1ef4e5f0c8d0c55d9b4c5c905a5da9e04b611b46506b8f2522c203731f2706b2"
+content-hash = "59cd78358da21f141a643ce945b868314c72bf1ca2028323c7c5dcdc1ec64cc7"
