@@ -4,15 +4,142 @@ from app.stations.data.models import (
     StationDataCreate,
     StationDataUpdate,
 )
-from sqlmodel_react_admin.routers import ReactAdminRouter
-from app.db import async_session
+from app.db import get_session, AsyncSession
+from fastapi import Depends, APIRouter, Query, Response, HTTPException
+from sqlmodel import select
+from uuid import UUID
+from typing import Any
+from app.crud import CRUD
 
-station_data_router = ReactAdminRouter(
-    db_model=StationData,
-    create_model=StationDataCreate,
-    read_model=StationDataRead,
-    update_model=StationDataUpdate,
-    name_singular="station data",
-    prefix="/data",
-    db_sessionmaker=async_session,
+
+router = APIRouter()
+crud = CRUD(
+    StationData,
+    StationDataRead,
+    StationDataCreate,
+    StationDataUpdate,
 )
+
+
+async def get_data(
+    filter: str = Query(None),
+    sort: str = Query(None),
+    range: str = Query(None),
+    session: AsyncSession = Depends(get_session),
+):
+    res = await crud.get_model_data(
+        sort=sort,
+        range=range,
+        filter=filter,
+        session=session,
+    )
+
+    return res
+
+
+async def get_count(
+    response: Response,
+    filter: str = Query(None),
+    range: str = Query(None),
+    sort: str = Query(None),
+    session: AsyncSession = Depends(get_session),
+):
+    count = await crud.get_total_count(
+        response=response,
+        sort=sort,
+        range=range,
+        filter=filter,
+        session=session,
+    )
+
+    return count
+
+
+@router.get("/{stationdata_id}", response_model=StationDataRead)
+async def get_station_data(
+    session: AsyncSession = Depends(get_session),
+    *,
+    stationdata_id: UUID,
+) -> StationDataRead:
+    """Get station data by id"""
+
+    res = await session.exec(
+        select(StationData).where(StationData.id == stationdata_id)
+    )
+
+    obj = res.one_or_none()
+
+    return obj
+
+
+@router.get("", response_model=list[StationDataRead])
+async def get_all_station_data(
+    response: Response,
+    stations: CRUD = Depends(get_data),
+    total_count: int = Depends(get_count),
+) -> list[StationDataRead]:
+    """Get all station data"""
+
+    return stations
+
+
+@router.post("", response_model=StationDataRead)
+async def create_stationdata(
+    stationdata: StationDataCreate,
+    session: AsyncSession = Depends(get_session),
+) -> StationDataRead:
+    """Creates a station data record"""
+
+    obj = StationData.model_validate(stationdata)
+
+    session.add(obj)
+    await session.commit()
+    await session.refresh(obj)
+
+    return obj
+
+
+@router.put("/{stationdata_id}", response_model=Any)
+async def update_stationdata(
+    stationdata_id: UUID,
+    stationdata_update: StationDataUpdate,
+    session: AsyncSession = Depends(get_session),
+) -> StationDataRead:
+    """Update station data by id"""
+
+    res = await session.exec(
+        select(StationData).where(StationData.id == stationdata_id)
+    )
+    obj = res.one_or_none()
+
+    if not obj:
+        raise HTTPException(
+            status_code=404, detail=f"ID: {stationdata_id} not found"
+        )
+
+    update_data = stationdata_update.model_dump(exclude_unset=True)
+    obj.sqlmodel_update(update_data)
+
+    session.add(obj)
+    await session.commit()
+    await session.refresh(obj)
+
+    return obj
+
+
+@router.delete("/{stationdata_id}")
+async def delete_stationdata(
+    stationdata_id: UUID,
+    session: AsyncSession = Depends(get_session),
+) -> None:
+    """Delete station data by id"""
+    res = await session.exec(
+        select(StationData).where(StationData.id == stationdata_id)
+    )
+
+    obj = res.one_or_none()
+
+    await session.delete(obj)
+    await session.commit()
+
+    return {"ok": True}

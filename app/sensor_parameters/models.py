@@ -1,7 +1,6 @@
-from sqlmodel import SQLModel, Field, Relationship
-from uuid import UUID
+from sqlmodel import SQLModel, Field, Relationship, UniqueConstraint
+from uuid import uuid4, UUID
 from typing import TYPE_CHECKING
-from sqlmodel_react_admin.models import ReactAdminDBModel
 from typing import Any
 
 if TYPE_CHECKING:
@@ -23,7 +22,19 @@ class SensorParameterBase(SQLModel):
     )
 
 
-class SensorParameter(SensorParameterBase, ReactAdminDBModel, table=True):
+class SensorParameter(SensorParameterBase, table=True):
+    __table_args__ = (UniqueConstraint("id"),)
+    iterator: int = Field(
+        default=None,
+        nullable=False,
+        primary_key=True,
+        index=True,
+    )
+    id: UUID = Field(
+        default_factory=uuid4,
+        index=True,
+        nullable=False,
+    )
     sensors: list["Sensor"] = Relationship(
         back_populates="parameter", sa_relationship_kwargs={"lazy": "selectin"}
     )

@@ -6,7 +6,7 @@ from app.sensors.views import router as sensor_router
 from app.astrocast.views import router as astrocast_router
 from app.astrocast.classes import astrocast_api
 from app.db import get_session, AsyncSession
-from app.sensor_parameters.views import sensor_parameters
+from app.sensor_parameters.views import router as sensor_parameter_router
 from sqlalchemy.sql import text
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
@@ -39,9 +39,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-# app.add_event_handler("startup", on_startup)
 
 
 class HealthCheck(BaseModel):
@@ -83,12 +80,12 @@ app.include_router(
     tags=["astrocast"],
 )
 app.include_router(
-    sensor_router.router,
+    sensor_router,
     prefix=f"{config.API_V1_PREFIX}/sensors",
     tags=["sensors"],
 )
 app.include_router(
-    router=sensor_parameters.router,
+    router=sensor_parameter_router,
     prefix=f"{config.API_V1_PREFIX}/sensor_parameters",
     tags=["sensor_parameters"],
 )

@@ -7,6 +7,7 @@ from app.astrocast.models import (
     AstrocastDevice,
 )
 import tenacity
+from tenacity import AsyncRetrying, retry_if_result
 from sqlmodel import select
 import asyncio
 import datetime
@@ -28,13 +29,6 @@ class AstrocastAPI:
         self.last_polling_time: datetime.datetime | None = None
         self.device_types = {}
 
-    @tenacity.retry(
-        wait=tenacity.wait_random(
-            min=config.ASTROCAST_RETRY_MIN_WAIT_SECONDS,
-            max=config.ASTROCAST_RETRY_MAX_WAIT_SECONDS,
-        ),
-        reraise=True,
-    )
     async def get_messages(
         self,
         only_new_messages: bool = True,
@@ -48,44 +42,54 @@ class AstrocastAPI:
             by default True. This uses the `get_time_of_last_saved_message()`
             to determine the last time a message was retrieved from the API.
         """
+        async for attempt in AsyncRetrying(
+            wait=tenacity.wait_random(
+                min=config.ASTROCAST_RETRY_MIN_WAIT_SECONDS,
+                max=config.ASTROCAST_RETRY_MAX_WAIT_SECONDS,
+            ),
+            reraise=True,
+        ):
+            with attempt:
+                # await self._get_messages(only_new_messages)
+                # Set the last polling time in the state of the class
+                self.last_polling_time = datetime.datetime.utcnow()
 
-        # Set the last polling time in the state of the class
-        self.last_polling_time = datetime.datetime.utcnow()
+                print(f"Getting messages ({self.last_polling_time})...")
 
-        print(f"Getting messages ({self.last_polling_time})...")
-
-        # Get the last retrieved message time that we saved locally
-        if only_new_messages:
-            last_db_message_time = await self.get_time_of_last_saved_message()
-            if last_db_message_time:
-                formed_api_url = (
-                    f"{self.api_url}/messages?startReceivedDate="
-                    f'{last_db_message_time.strftime("%Y-%m-%dT%H:%M:%S")}Z'
-                )
-            else:
-                formed_api_url = f"{self.api_url}/messages"
-        else:
-            formed_api_url = f"{self.api_url}/messages"
-
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                formed_api_url,
-                headers={"X-Api-Key": str(self.api_token)},
-            ) as response:
-                if response.status == 200:
-                    messages = await response.json()
-                    if len(messages) > 0:
-                        print(f"Got {len(messages)} messages.")
-
-                        # Compile message into objects
-                        for message in messages:
-                            await self.add_message_to_db(message)
+                # Get the last retrieved message time that we saved locally
+                if only_new_messages:
+                    last_db_message_time = (
+                        await self.get_time_of_last_saved_message()
+                    )
+                    if last_db_message_time:
+                        formed_api_url = (
+                            f"{self.api_url}/messages?startReceivedDate="
+                            f'{last_db_message_time.strftime("%Y-%m-%dT%H:%M:%S")}Z'
+                        )
                     else:
-                        print("There is no message.")
+                        formed_api_url = f"{self.api_url}/messages"
                 else:
-                    print("Error, something is wrong in the request.")
+                    formed_api_url = f"{self.api_url}/messages"
 
-        return
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(
+                        formed_api_url,
+                        headers={"X-Api-Key": str(self.api_token)},
+                    ) as response:
+                        if response.status == 200:
+                            messages = await response.json()
+                            if len(messages) > 0:
+                                print(f"Got {len(messages)} messages.")
+
+                                # Compile message into objects
+                                for message in messages:
+                                    await self.add_message_to_db(message)
+                            else:
+                                print("There is no message.")
+                        else:
+                            print("Error, something is wrong in the request.")
+
+                return
 
     async def get_device(
         self,
@@ -124,6 +128,7 @@ class AstrocastAPI:
             async with session.get(
                 api_url,
                 headers={"X-Api-Key": str(self.api_token)},
+                timeout=aiohttp.ClientTimeout(total=2),
             ) as response:
                 if response.status == 200:
                     messages = await response.json()
@@ -162,6 +167,7 @@ class AstrocastAPI:
             async with session.get(
                 api_url,
                 headers={"X-Api-Key": str(self.api_token)},
+                timeout=aiohttp.ClientTimeout(total=2),
             ) as response:
                 if response.status == 200:
                     device_types = await response.json()
