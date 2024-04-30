@@ -1,6 +1,9 @@
 from sqlmodel import SQLModel, Field, UniqueConstraint
 from uuid import uuid4, UUID
+from typing import Any
 import datetime
+
+from app.stations.models import StationRead
 
 
 class StationDataBase(SQLModel):
@@ -53,8 +56,18 @@ class StationDataRead(StationDataBase):
     id: UUID
 
 
-class StationDataCreate(StationDataBase):
-    pass
+class StationDataCreate(SQLModel):
+    raw: str
+    # station_id: UUID
+    astrocast_id: UUID | str
+    received_at: datetime.datetime = Field(
+        default_factory=datetime.datetime.now,
+    )
+    recorded_at: datetime.datetime | None = None
+    values: list[int] = []
+    parameters: list[str] = []
+    station: "StationRead" = None
+    astrocast_device: Any = None
 
 
 class StationDataUpdate(StationDataBase):
