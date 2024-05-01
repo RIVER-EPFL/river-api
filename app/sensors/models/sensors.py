@@ -12,6 +12,7 @@ from app.stations.models import StationSensorAssignments
 from app.sensors.models.calibrations import (
     SensorCalibrationRead,
     SensorCalibrationUpdate,
+    SensorCalibrationCreate,
 )
 from app.sensor_parameters.models import (
     SensorParameter,
@@ -29,7 +30,7 @@ class SensorBase(SQLModel):
     serial_number: str | None
     model: str | None
     parameter_id: UUID = Field(foreign_key="sensorparameter.id")
-    calibrations: list[dict[str, Any]] = Field(
+    calibrations: list["SensorCalibrationCreate"] = Field(
         default=[], sa_column=Column(JSON)
     )
 

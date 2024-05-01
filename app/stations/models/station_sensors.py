@@ -64,6 +64,7 @@ class StationSensorAssignments(StationSensorAssignmentsBase, table=True):
             "sensor_position",
             name="sensor_position_constraint",
         ),
+        UniqueConstraint("id", name="station_sensor_id_constraint"),
     )
     iterator: int = Field(
         default=None,

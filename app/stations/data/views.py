@@ -141,7 +141,6 @@ async def create_stationdata(
 
     print(stationdata)
     print(stationdata.raw)
-    # print(get_unix_time_from_str(stationdata.raw[:10]))
     try:
         query = select(Station).where(
             Station.associated_astrocast_device
@@ -153,7 +152,6 @@ async def create_stationdata(
 
         param_location = []
         for sensor in station.sensors:
-            # print(sensor)
             param_location.append(
                 (
                     sensor.parameter.acronym,
@@ -161,17 +159,18 @@ async def create_stationdata(
                     sensor.calibrations,
                 )
             )
-            # print(
-            #     f"{sensor.parameter.acronym.lower():10} "
-            #     f"({sensor.station_link.sensor_position:2})"
-            # )
 
         [print(x) for x in sorted(param_location, key=lambda x: x[1])]
 
         stationdata.station = station
+        stationdata.received_at = datetime.datetime.now().replace(
+            microsecond=0
+        )
         stationdata.recorded_at = get_unix_time_from_str(stationdata.raw)
         stationdata.values = extract_raw_values_from_str(stationdata.raw)
+
         return stationdata
+
     except ValueError as e:
         raise HTTPException(
             status_code=500,

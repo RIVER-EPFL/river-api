@@ -27,7 +27,11 @@ class AstrocastMessageBase(SQLModel):
 
 
 class AstrocastMessage(AstrocastMessageBase, table=True):
-    __table_args__ = (UniqueConstraint("messageGuid"),)
+    __table_args__ = (
+        UniqueConstraint("messageGuid", name="message_guid_constraint"),
+        UniqueConstraint("id", name="local_id_constraint"),
+    )
+
     iterator: int = Field(  # Our DB iterator
         default=None,
         nullable=False,
