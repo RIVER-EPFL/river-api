@@ -105,6 +105,15 @@ class CRUD:
                             )
 
                         query = query.filter(or_(*or_conditions))
+                    elif isinstance(value, bool):
+                        if value is True:
+                            query = query.filter(
+                                getattr(self.db_model, field).has()
+                            )
+                        else:
+                            query = query.filter(
+                                ~getattr(self.db_model, field).has()
+                            )
                     else:
                         # Apply a LIKE filter for string matching
                         query = query.filter(
@@ -172,6 +181,15 @@ class CRUD:
                             )
 
                         query = query.filter(or_(*or_conditions))
+                    elif isinstance(value, bool):
+                        if value is True:
+                            query = query.filter(
+                                getattr(self.db_model, field).has()
+                            )
+                        else:
+                            query = query.filter(
+                                ~getattr(self.db_model, field).has()
+                            )
                     else:
                         # Apply a LIKE filter for string matching
                         query = query.filter(
