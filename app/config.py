@@ -1,6 +1,7 @@
 from pydantic import model_validator
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+import sys
 
 
 class Config(BaseSettings):
@@ -9,7 +10,7 @@ class Config(BaseSettings):
     # Sensor settings
     DEFAULT_SENSOR_OUTPUT_RANGE: int = 4096
 
-    # PostGIS settings
+    # Postgres settings
     DB_HOST: str | None
     DB_PORT: int = 5432
     DB_USER: str | None
@@ -26,6 +27,20 @@ class Config(BaseSettings):
     ASTROCAST_POLLING_INTERVAL_SECONDS: int = 60
     ASTROCAST_RETRY_MIN_WAIT_SECONDS: int = 1
     ASTROCAST_RETRY_MAX_WAIT_SECONDS: int = 5
+
+    @model_validator(mode="before")
+    def dummy_variables_for_testing(cls, values: dict) -> dict:
+        """Add some dummy variables for testing the model validator"""
+        if "pytest" in sys.modules:
+            return {
+                "DB_URL": "sqlite+aiosqlite:///",
+                "DB_HOST": "localhost",
+                "DB_USER": "postgres",
+                "DB_PASSWORD": "postgres",
+                "ASTROCAST_API_URL": "https://not.an.address.xyz",
+                "ASTROCAST_API_KEY": "1234567890",
+            }
+        return values
 
     @model_validator(mode="before")
     @classmethod
