@@ -86,50 +86,7 @@ async def get_all_station_data(
 import time
 import datetime
 from app.stations.models import Station
-
-
-def get_unix_time_from_str(input: str) -> datetime.datetime:
-    """Takes the first 10 characters of a string and converts to unix timestamp
-
-    The first 10 characters of a string are assumed to be an integer
-    representation of a unix timestamp.
-
-    Args:
-        time_str (str): A string representation of a unix timestamp
-
-    Returns:
-        datetime.datetime: A datetime object
-    """
-
-    cut_string = int(input[:10])
-
-    return datetime.datetime.fromtimestamp(cut_string)
-
-
-def extract_raw_values_from_str(input: str) -> list[int]:
-    """Extracts values from a string
-
-    Each representation of a float is a block of four integers. The string
-    is to be split in chunks of four, converted to n-integers in a list.
-
-    Args:
-        input (str): The full string given by a sensor including the timestamp
-        in the first 10 characters
-
-    Returns:
-        list[int]: A list of split integers
-    """
-
-    cut_string = input[10:]
-
-    if len(cut_string) % 4 != 0:
-        raise ValueError(f"The string {cut_string} is not divisible by 4")
-
-    integer_list = []
-    for i in range(0, len(cut_string), 4):
-        integer_list.append(int(cut_string[i : i + 4]))
-
-    return integer_list
+from app.utils import get_unix_time_from_str, extract_raw_values_from_str
 
 
 @router.post("", response_model=Any)
@@ -161,12 +118,13 @@ async def create_stationdata(
             )
 
         [print(x) for x in sorted(param_location, key=lambda x: x[1])]
-
+        recorded_at = get_unix_time_from_str(stationdata.raw)
+        print("RECORDEDAT:", recorded_at)
         stationdata.station = station
         stationdata.received_at = datetime.datetime.now().replace(
             microsecond=0
         )
-        stationdata.recorded_at = get_unix_time_from_str(stationdata.raw)
+        stationdata.recorded_at = recorded_at
         stationdata.values = extract_raw_values_from_str(stationdata.raw)
 
         return stationdata

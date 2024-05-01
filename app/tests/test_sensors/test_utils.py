@@ -57,3 +57,24 @@
 
 #             # Assert the conversion converts within a threshold of 1.0
 #             assert pytest.approx(conversion) == float(float(values["value"]))
+
+from app.utils import get_unix_time_from_str, extract_raw_values_from_str
+import datetime
+
+
+def test_get_unix_time_from_str(
+    data_message: tuple[str, list[int], datetime.datetime]
+):
+    """Test the conversion of a string to a unix timestamp"""
+    data_string, expected_values, expected_time = data_message
+
+    assert get_unix_time_from_str(data_string) == expected_time
+
+
+def test_extract_raw_values_from_str(
+    data_message: tuple[str, list[int], datetime.datetime]
+):
+    """Test the extraction of raw values from a string"""
+    data_string, expected_values, expected_time = data_message
+
+    assert extract_raw_values_from_str(data_string) == expected_values
