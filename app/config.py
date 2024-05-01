@@ -33,7 +33,7 @@ class Config(BaseSettings):
         """Add some dummy variables for testing the model validator"""
         if "pytest" in sys.modules:
             return {
-                "DB_URL": "sqlite+aiosqlite:///",
+                "DB_URL": "postgresql+asyncpg://",
                 "DB_HOST": "localhost",
                 "DB_USER": "postgres",
                 "DB_PASSWORD": "postgres",

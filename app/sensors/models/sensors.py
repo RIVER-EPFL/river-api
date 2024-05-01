@@ -36,7 +36,13 @@ class SensorBase(SQLModel):
 
 
 class Sensor(SensorBase, table=True):
-    __table_args__ = (UniqueConstraint("id"),)
+    __table_args__ = (
+        UniqueConstraint("id"),
+        UniqueConstraint(
+            "field_id",
+            name="unique_sensor_field_id",
+        ),
+    )
     iterator: int = Field(
         default=None,
         nullable=False,
@@ -62,6 +68,11 @@ class Sensor(SensorBase, table=True):
         back_populates="sensors",
         sa_relationship_kwargs={"lazy": "selectin"},
     )
+    field_id: str = Field(
+        nullable=False,
+        description="The unique field id of the sensor to be used in the "
+        "control message",
+    )
 
 
 class SensorCreate(SensorBase):
@@ -74,6 +85,7 @@ class SensorRead(SensorBase):
     parameter: SensorParameterReadWithoutSensors | None = None
     station_link: StationSensorAssignments | None = None
     calibrations: list["SensorCalibrationRead"] = []
+    field_id: str | None = None
 
     @model_validator(mode="after")
     def order_calibrations_by_descending_time(self) -> Self:

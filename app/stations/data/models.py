@@ -82,19 +82,19 @@ class StationData(StationDataBase, table=True):
     )
 
 
-class StationDataRead(StationDataBase):
-    id: UUID
-
-
-class StationDataCreate(SQLModel):
-    raw: str
-    astrocast_id: UUID | str
+class StationDataRead(SQLModel):
+    # id: UUID
     received_at: datetime.datetime | None = None
     recorded_at: datetime.datetime | None = None
     values: list[int] = []
     parameters: list[str] = []
     station: "StationRead" = None
     astrocast_device: Any = None
+
+
+class StationDataCreate(SQLModel):
+    raw: str
+    astrocast_id: UUID | str
 
 
 class StationDataUpdate(StationDataBase):

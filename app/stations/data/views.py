@@ -86,7 +86,12 @@ async def get_all_station_data(
 import time
 import datetime
 from app.stations.models import Station
-from app.utils import get_unix_time_from_str, extract_raw_values_from_str
+from app.utils import (
+    get_unix_time_from_str,
+    extract_raw_values_from_str,
+    parse_station_data,
+    generate_random_id,
+)
 
 
 @router.post("", response_model=Any)
@@ -96,51 +101,16 @@ async def create_stationdata(
 ) -> StationDataRead:
     """Creates a station data record"""
 
-    print(stationdata)
-    print(stationdata.raw)
-    try:
-        query = select(Station).where(
-            Station.associated_astrocast_device
-            == str(stationdata.astrocast_id)
-        )
+    obj = await parse_station_data(stationdata, session)
+    print(obj.recorded_at)
 
-        res = await session.exec(query)
-        station = res.one_or_none()
-
-        param_location = []
-        for sensor in station.sensors:
-            param_location.append(
-                (
-                    sensor.parameter.acronym,
-                    sensor.station_link.sensor_position,
-                    sensor.calibrations,
-                )
-            )
-
-        [print(x) for x in sorted(param_location, key=lambda x: x[1])]
-        recorded_at = get_unix_time_from_str(stationdata.raw)
-        print("RECORDEDAT:", recorded_at)
-        stationdata.station = station
-        stationdata.received_at = datetime.datetime.now().replace(
-            microsecond=0
-        )
-        stationdata.recorded_at = recorded_at
-        stationdata.values = extract_raw_values_from_str(stationdata.raw)
-
-        return stationdata
-
-    except ValueError as e:
-        raise HTTPException(
-            status_code=500,
-            detail=str(e),
-        )
     # obj = StationData.model_validate(stationdata)
 
     # session.add(obj)
     # await session.commit()
     # await session.refresh(obj)
 
-    # return obj
+    return obj
 
 
 @router.put("/{stationdata_id}", response_model=Any)

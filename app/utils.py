@@ -2,6 +2,20 @@ from fastapi import HTTPException
 import base64
 import datetime
 
+from app.stations.models import Station
+from app.stations.data.models import (
+    StationData,
+    StationDataRead,
+    StationDataCreate,
+    StationDataUpdate,
+)
+
+from app.db import AsyncSession
+from fastapi import HTTPException
+from sqlmodel import select
+import random
+import string
+
 
 def decode_base64(value: str) -> tuple[bytes, str]:
     """Decode base64 string to csv bytes"""
@@ -69,3 +83,54 @@ def extract_raw_values_from_str(input: str) -> list[int]:
         integer_list.append(int(cut_string[i : i + 4]))
 
     return integer_list
+
+
+async def parse_station_data(
+    stationdata: StationDataCreate, session: AsyncSession
+) -> StationDataRead:
+    print(stationdata)
+    print(stationdata.raw)
+    try:
+        query = select(Station).where(
+            Station.associated_astrocast_device
+            == str(stationdata.astrocast_id)
+        )
+
+        res = await session.exec(query)
+        station = res.one_or_none()
+
+        param_location = []
+        for sensor in station.sensors:
+            param_location.append(
+                (
+                    sensor.parameter.acronym,
+                    sensor.station_link.sensor_position,
+                    sensor.calibrations,
+                )
+            )
+
+        [print(x) for x in sorted(param_location, key=lambda x: x[1])]
+
+        obj = StationDataRead(
+            values=extract_raw_values_from_str(stationdata.raw),
+            recorded_at=get_unix_time_from_str(stationdata.raw),
+            station=station,
+            received_at=datetime.datetime.now().replace(microsecond=0),
+        )
+
+        return obj
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e),
+        )
+
+
+# Function to generate a random 4-character alphabetic ID
+def generate_random_id():
+    # Use uppercase letters only
+    letters = string.ascii_uppercase
+
+    # Generate a 4-character ID
+    return "".join(random.choice(letters) for _ in range(4))

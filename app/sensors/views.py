@@ -10,6 +10,7 @@ from sqlmodel import select
 from uuid import UUID
 from typing import Any
 from app.crud import CRUD
+from app.utils import generate_random_id
 
 router = APIRouter()
 crud = CRUD(Sensor, SensorRead, SensorCreate, SensorUpdate)
@@ -82,7 +83,20 @@ async def create_sensor(
 ) -> SensorRead:
     """Creates a sensor data record"""
 
-    obj = Sensor.model_validate(sensor)
+    # Get all of the field_ids
+    query = await session.exec(select(Sensor.field_id))
+    existing_field_ids = query.all()
+
+    print(f"FIELD_IDS: {existing_field_ids}")
+
+    # Generate a random field_id
+    field_id = generate_random_id()
+    while field_id in existing_field_ids:
+        field_id = generate_random_id()
+    sensor_data_dict = sensor.model_dump()
+    sensor_data_dict["field_id"] = field_id
+
+    obj = Sensor.model_validate(sensor_data_dict)
 
     session.add(obj)
     await session.commit()
