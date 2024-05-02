@@ -10,13 +10,13 @@ if TYPE_CHECKING:
 
 
 class StationSensorAssignmentsBase(SQLModel):
-    installed_on: datetime.datetime | None = Field(
-        default=None,
+    installed_on: datetime.datetime = Field(
+        default_factory=datetime.datetime.now,
         nullable=False,
     )
     sensor_position: int = Field(
         gt=0,  # Position must be greater than 0 (starts at 1)
-        le=15,  # Only 15 positions allowed on a station
+        le=24,  # Only 24 positions allowed on a station
         default=None,
         nullable=False,
     )
@@ -24,9 +24,10 @@ class StationSensorAssignmentsBase(SQLModel):
         foreign_key="station.id",
         nullable=False,
     )
-    sensor_id: UUID = Field(
+    sensor_id: UUID | None = Field(
+        None,
         foreign_key="sensor.id",
-        nullable=False,
+        nullable=True,
     )
 
     @field_validator("installed_on")
@@ -55,15 +56,6 @@ class StationSensorAssignmentsUpdate(StationSensorAssignmentsBase):
 
 class StationSensorAssignments(StationSensorAssignmentsBase, table=True):
     __table_args__ = (
-        UniqueConstraint(
-            "sensor_id",
-            name="no_multiple_sensors_assigned_constraint",
-        ),
-        UniqueConstraint(
-            "station_id",
-            "sensor_position",
-            name="sensor_position_constraint",
-        ),
         UniqueConstraint("id", name="station_sensor_id_constraint"),
     )
     iterator: int = Field(

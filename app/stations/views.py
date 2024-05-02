@@ -17,6 +17,7 @@ from sqlalchemy import func
 import json
 from sqlalchemy.exc import IntegrityError
 from app.stations.data.views import router as station_data_router
+import datetime
 
 router = APIRouter()
 
@@ -46,6 +47,8 @@ async def get_station_sensor_by_position(
         select(StationSensorAssignments)
         .where(StationSensorAssignments.station_id == station_id)
         .where(StationSensorAssignments.sensor_position == sensor_position)
+        .order_by(StationSensorAssignments.installed_on.desc())
+        .limit(1)
     )
     obj = res.one_or_none()
 
@@ -64,9 +67,10 @@ async def get_station_sensor(
     """Get a station sensor relation by its local id"""
 
     res = await session.exec(
-        select(StationSensorAssignments).where(
-            StationSensorAssignments.id == station_sensor_id
-        )
+        select(StationSensorAssignments)
+        .where(StationSensorAssignments.id == station_sensor_id)
+        .order_by(StationSensorAssignments.installed_on.desc())
+        .limit(1)
     )
     obj = res.one_or_none()
 
@@ -173,12 +177,33 @@ async def create_station_sensor_mapping(
 
     obj = StationSensorAssignments.model_validate(station_sensor)
     try:
-        session.add(obj)
+        # Check if the sensor is already assigned to a station. If it is,
+        # create a new object for that station with the same sensor position
+        # to sensor_id=None
 
+        res = await session.exec(
+            select(StationSensorAssignments)
+            .where(StationSensorAssignments.sensor_id == obj.sensor_id)
+            .order_by(StationSensorAssignments.installed_on.desc())
+            .limit(1)
+        )
+
+        existing_sensor = res.one_or_none()
+        if existing_sensor:
+            old_station_sensor_assignment = StationSensorAssignments(
+                station_id=existing_sensor.station_id,
+                sensor_position=existing_sensor.sensor_position,
+                sensor_id=None,
+                installed_on=datetime.datetime.now(),
+            )
+
+            session.add(old_station_sensor_assignment)
+            await session.commit()
+
+        session.add(obj)
         await session.commit()
     except IntegrityError as e:
         await session.rollback()
-
         if "sensor_position_constraint" in str(e.orig):
             raise HTTPException(
                 status_code=409,
@@ -263,6 +288,41 @@ async def get_station(
     station_data = res.one_or_none()
 
     return station_data
+
+
+@router.get(
+    "/{station_id}/sensors",
+    response_model=list[StationSensorAssignmentsRead],
+)
+async def get_current_sensors_for_station(
+    session: AsyncSession = Depends(get_session),
+    *,
+    station_id: UUID,
+    total: str = Query(...),
+) -> StationSensorAssignmentsRead:
+    """Get a station sensor relation by its local id"""
+
+    res = await session.exec(
+        select(StationSensorAssignments).where(
+            StationSensorAssignments.station_id == station_id
+        )
+    )
+    objs = res.all()
+
+    current_sensors = {}
+    for i in range(int(total)):
+        current_index_results = []
+        for obj in objs:
+            if obj.sensor_position == i:
+                current_index_results.append(obj)
+
+        for res in current_index_results:
+            # Sort results by installed_on and get the most recent
+            current_sensors[i] = max(
+                current_index_results, key=lambda x: x.installed_on
+            )
+
+    return current_sensors.values()
 
 
 @router.get("", response_model=list[StationRead])

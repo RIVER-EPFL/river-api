@@ -20,7 +20,10 @@ from app.sensor_parameters.models import (
 )
 from typing import Any
 from typing_extensions import Self
-from pydantic import model_validator
+from pydantic import model_validator, computed_field
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.sql import func
+from sqlmodel import select
 
 if TYPE_CHECKING:
     from app.stations.models import Station
@@ -74,6 +77,14 @@ class Sensor(SensorBase, table=True):
         "control message",
     )
 
+    # Current station is a join on the StationSensorAssignment table for the
+    # single most recent result ordered by time_daded
+    # current_station: Station = Relationship(
+    #     sa_relationship_kwargs={
+    #         "primaryjoin": "_"
+    #     }
+    # )
+
 
 class SensorCreate(SensorBase):
     pass
@@ -86,6 +97,7 @@ class SensorRead(SensorBase):
     station_link: StationSensorAssignments | None = None
     calibrations: list["SensorCalibrationRead"] = []
     field_id: str | None = None
+    # assigned_to_station: bool
 
     @model_validator(mode="after")
     def order_calibrations_by_descending_time(self) -> Self:
