@@ -18,6 +18,7 @@ import json
 from sqlalchemy.exc import IntegrityError
 from app.stations.data.views import router as station_data_router
 import datetime
+from app.sensors.views import get_current_assignment_property
 
 router = APIRouter()
 
@@ -286,6 +287,13 @@ async def get_station(
     res = await session.exec(query)
 
     station_data = res.one_or_none()
+    station_data = StationRead.model_validate(station_data)
+    updated_sensors = []
+    for sensor in station_data.sensors:
+        sensor = await get_current_assignment_property(sensor, session)
+        updated_sensors.append(sensor)
+
+    station_data.sensors = updated_sensors
 
     return station_data
 

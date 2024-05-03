@@ -183,6 +183,7 @@ class CRUD:
                         query = query.filter(or_(*or_conditions))
                     elif isinstance(value, bool):
                         if value is True:
+                            # If true, the field has a value and the value
                             query = query.filter(
                                 getattr(self.db_model, field).has()
                             )
@@ -211,3 +212,18 @@ class CRUD:
         )
 
         return total_count
+
+    async def get_model_by_id(
+        self,
+        session: AsyncSession,
+        *,
+        model_id: str,
+    ) -> Any:
+        """Get a model by id"""
+
+        res = await session.exec(
+            select(self.db_model).where(self.db_model.id == model_id)
+        )
+        obj = res.one_or_none()
+
+        return obj
