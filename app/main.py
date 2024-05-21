@@ -11,6 +11,7 @@ from sqlalchemy.sql import text
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 import asyncio
+import sys
 
 
 @asynccontextmanager
@@ -20,8 +21,9 @@ async def lifespan(
     print("Starting up RIVER-API...")
 
     # Start polling the Astrocast API for messages
-    asyncio.create_task(astrocast_api.update_device_types())
-    asyncio.create_task(astrocast_api.start_collecting_messages())
+    if "pytest" not in sys.modules:
+        asyncio.create_task(astrocast_api.update_device_types())
+        asyncio.create_task(astrocast_api.start_collecting_messages())
 
     yield
 

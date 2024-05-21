@@ -5,6 +5,7 @@ from app.sensors.models import (
     SensorUpdate,
 )
 from app.stations.models import StationSensorAssignments
+from app.stations.models.station import Station
 from app.db import get_session, AsyncSession
 from fastapi import Depends, APIRouter, Query, Response, HTTPException
 from sqlmodel import select
@@ -73,6 +74,81 @@ async def get_current_assignment_property(
     return sensor
 
 
+async def get_historical_assignments(
+    sensor: Sensor,
+    session: AsyncSession = Depends(get_session),
+) -> SensorRead:
+    """Returns a list of historical assignments with from and to dates"""
+    sensor = SensorRead.model_validate(sensor)
+
+    if sensor.station_link:
+        # Query all assignments for the sensor, including where sensor_id is None
+        query = await session.exec(
+            select(StationSensorAssignments, Station.name)
+            .where(
+                (StationSensorAssignments.sensor_id == sensor.id)
+                | (StationSensorAssignments.sensor_id == None)
+            )
+            .join(Station, StationSensorAssignments.station_id == Station.id)
+            .order_by(StationSensorAssignments.installed_on.asc())
+        )
+        assignments = query.all()
+
+        # Process the assignments to include "to" dates
+        history = []
+        previous_assignment = None
+
+        for i, (assignment, station_name) in enumerate(assignments):
+            if previous_assignment:
+                if (
+                    assignment.sensor_id is None
+                    or assignment.sensor_id != sensor.id
+                ) and assignment.sensor_position == previous_assignment[
+                    "sensor_position"
+                ]:
+                    # Set "to" date if the next assignment is a removal or different sensor assignment at the same position
+                    previous_assignment["to"] = assignment.installed_on
+
+                elif (
+                    assignment.sensor_id == sensor.id
+                    and assignment.sensor_position
+                    != previous_assignment["sensor_position"]
+                ):
+                    # Set "to" date if the sensor is moved to a different position within the same station
+                    previous_assignment["to"] = assignment.installed_on
+
+            if assignment.sensor_id == sensor.id:
+                history.append(
+                    {
+                        "from": assignment.installed_on,
+                        "to": None,  # Initialize to None, will be set by the next iteration
+                        "station_id": assignment.station_id,
+                        "station_name": station_name,
+                        "sensor_position": assignment.sensor_position,
+                    }
+                )
+                previous_assignment = history[-1]
+            elif assignment.sensor_id is None and previous_assignment:
+                # This indicates the sensor was removed from its position
+                if (
+                    assignment.sensor_position
+                    == previous_assignment["sensor_position"]
+                ):
+                    previous_assignment["to"] = assignment.installed_on
+                    previous_assignment = None  # Reset previous assignment
+
+        # If the last assignment is still active, its "to" date should remain None
+        if previous_assignment and previous_assignment["to"] is None:
+            previous_assignment["to"] = (
+                None  # Ensure it's explicitly set to None
+            )
+
+        # Sort history by "from" date descending
+        sensor.history = sorted(history, key=lambda x: x["from"], reverse=True)
+
+    return sensor
+
+
 async def get_data(
     filter: str = Query(None),
     sort: str = Query(None),
@@ -100,14 +176,13 @@ async def get_one(
     res = await crud.get_model_by_id(model_id=sensor_id, session=session)
 
     obj = await get_current_assignment_property(res, session=session)
+    obj = await get_historical_assignments(obj, session=session)
 
     return obj
 
 
 @router.get("/{sensor_id}", response_model=SensorRead)
 async def get_sensor(
-    # session: AsyncSession = Depends(get_session),
-    # *,
     obj: CRUD = Depends(get_one),
 ) -> SensorRead:
     """Get a sensor by id"""

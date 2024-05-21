@@ -3,7 +3,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import sessionmaker
 from app.config import config
 from typing import AsyncGenerator, Any
-from sqlmodel import select, update
+from sqlmodel import select
 from sqlalchemy.sql import func
 from fastapi import Depends, Query
 import json

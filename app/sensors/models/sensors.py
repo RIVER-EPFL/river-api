@@ -58,11 +58,11 @@ class Sensor(SensorBase, table=True):
         index=True,
         nullable=False,
     )
-    stations: list["Station"] = Relationship(
-        back_populates="sensors",
-        link_model=StationSensorAssignments,
-        sa_relationship_kwargs={"lazy": "selectin"},
-    )
+    # stations: list["Station"] = Relationship(
+    #     # back_populates="sensors",
+    #     link_model=StationSensorAssignments,
+    #     sa_relationship_kwargs={"lazy": "selectin"},
+    # )
     station_link: list[StationSensorAssignments] = Relationship(
         # Get the most recent one sorted by installed_on
         back_populates="sensor",
@@ -89,21 +89,18 @@ class SensorRead(SensorBase):
     id: UUID
     parameter_id: UUID | None
     parameter: SensorParameterReadWithoutSensors | None = None
-    station_link: list[StationSensorAssignments] | None = None
-    calibrations: list["SensorCalibrationRead"] = []
     field_id: str | None = None
 
-    # Current assignment is the last assignment, and if the station has still
-    # the sensor at that position as its latest record, then it is the current
-    # assignment
+    station_link: list[StationSensorAssignments] | None = None
+    calibrations: list["SensorCalibrationRead"] = []
+
+    history: list[dict[str, Any]] | None = None
     current_assignment: StationSensorAssignments | None = None
 
     @model_validator(mode="after")
     def order_calibrations_by_descending_time(self) -> Self:
         if not self.calibrations:
             return self
-
-        # Sort the data and order by calibrated_on descending
 
         self.calibrations = sorted(
             self.calibrations,
