@@ -58,11 +58,11 @@ class Sensor(SensorBase, table=True):
         index=True,
         nullable=False,
     )
-    # stations: list["Station"] = Relationship(
-    #     # back_populates="sensors",
-    #     link_model=StationSensorAssignments,
-    #     sa_relationship_kwargs={"lazy": "selectin"},
-    # )
+    stations: list["Station"] = Relationship(
+        # back_populates="sensors",
+        link_model=StationSensorAssignments,
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )
     station_link: list[StationSensorAssignments] = Relationship(
         # Get the most recent one sorted by installed_on
         back_populates="sensor",

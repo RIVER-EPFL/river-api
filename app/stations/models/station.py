@@ -44,11 +44,11 @@ class Station(StationBase, table=True):
 
     # Load full sensor relationship with all nested relationships
     # (calibrations, sensor_link)
-    # sensors: list["Sensor"] = Relationship(
-    #     back_populates="stations",
-    #     link_model=StationSensorAssignments,
-    #     sa_relationship_kwargs={"lazy": "selectin"},
-    # )
+    sensors: list["Sensor"] = Relationship(
+        back_populates="stations",
+        link_model=StationSensorAssignments,
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )
     sensor_link: list["StationSensorAssignments"] = Relationship(
         back_populates="station",
         sa_relationship_kwargs={"lazy": "selectin"},
